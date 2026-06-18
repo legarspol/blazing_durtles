@@ -91,12 +91,8 @@ public final class AudioUtil {
      *
      * @return the array of absolute path names, never null, could be empty
      */
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     private static File[] getExternalFilesDirs() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return WkApplication.getInstance().getExternalFilesDirs(null);
-        }
-        return new File[] {WkApplication.getInstance().getExternalFilesDir(null)};
+        return WkApplication.getInstance().getExternalFilesDirs(null);
     }
 
 

@@ -23,7 +23,6 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -199,12 +198,7 @@ public final class DataImportExportActivity extends AbstractActivity {
     }
 
     private void importSearchPresets() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            importSearchPresetsPost19();
-        }
-        else {
-            importSearchPresetsPre19();
-        }
+        importSearchPresetsPost19();
     }
 
     private void exportStarRatings() {
@@ -270,33 +264,13 @@ public final class DataImportExportActivity extends AbstractActivity {
         });
     }
 
-    @TargetApi(19)
-    private void importStarRatingsPost19() {
+    private void importStarRatings() {
         final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("application/json");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         if (starRatingsActivityResultLauncher != null) {
             starRatingsActivityResultLauncher.launch(intent);
-        }
-    }
-
-    private void importStarRatingsPre19() {
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/json");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        if (starRatingsActivityResultLauncher != null) {
-            starRatingsActivityResultLauncher.launch(Intent.createChooser(intent, "Select a star ratings JSON file to import"));
-        }
-    }
-
-    private void importStarRatings() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            importStarRatingsPost19();
-        }
-        else {
-            importStarRatingsPre19();
         }
     }
 }

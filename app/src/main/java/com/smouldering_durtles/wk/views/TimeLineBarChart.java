@@ -136,9 +136,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         safe(() -> {
             setBackgroundResource(R.drawable.main_activity_view_background);
             setPadding(0, (int) (4 * density), 0, (int) (4 * density));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                setNestedScrollingEnabled(true);
-            }
+            setNestedScrollingEnabled(true);
         });
     }
 
@@ -518,9 +516,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             if (scroller != null) {
                 scroller.forceFinished(true);
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
-            }
+            startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
             prevVerticalScrollRawY = e.getRawY();
         });
         return true;
@@ -541,9 +537,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
         safe(() -> {
             scrollOffset = Math.min(entries.size() * barAdvance - axisSizeX, Math.max(0, scrollOffset + distanceX));
             final float distance = prevVerticalScrollRawY - e2.getRawY();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                dispatchNestedScroll(0, 0, 0, (int) distance, null);
-            }
+            dispatchNestedScroll(0, 0, 0, (int) distance, null);
             prevVerticalScrollRawY = e2.getRawY();
             invalidate();
         });
@@ -564,9 +558,7 @@ public final class TimeLineBarChart extends View implements GestureDetector.OnGe
             scroller.forceFinished(true);
             scroller.fling((int) scrollOffset, 0, (int) -velocityX, 0,
                     0, (int) (entries.size() * barAdvance - axisSizeX), 0, 0);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                dispatchNestedFling(0, -velocityY, false);
-            }
+            dispatchNestedFling(0, -velocityY, false);
             invalidate();
         });
         return true;

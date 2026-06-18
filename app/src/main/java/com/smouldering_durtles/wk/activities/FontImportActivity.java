@@ -28,11 +28,9 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safeNullable;
 import static java.util.Objects.requireNonNull;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.TableLayout;
@@ -182,37 +180,17 @@ public final class FontImportActivity extends AbstractActivity {
         });
     }
 
-    @TargetApi(19)
-    private void importFontPost19() {
-        final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        if (activityResultLauncher != null) {
-            activityResultLauncher.launch(intent);
-        }
-    }
-
-    private void importFontPre19() {
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        if (activityResultLauncher != null) {
-            activityResultLauncher.launch(Intent.createChooser(intent, "Select a TTF font file to import"));
-        }
-    }
-
     /**
      * Handler for the import button. Pop up the chooser.
      */
     private void importFont() {
         safe(() -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                importFontPost19();
-            }
-            else {
-                importFontPre19();
+            final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("*/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+            if (activityResultLauncher != null) {
+                activityResultLauncher.launch(intent);
             }
         });
     }

@@ -69,7 +69,7 @@ public final class WaniKaniTagHandler implements Html.TagHandler {
                 end(output, Ja.class, new LocaleSpan(new LocaleList(Locale.JAPAN, Locale.ROOT)));
             }
         }
-        else if (tag.equalsIgnoreCase("ja") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        else if (tag.equalsIgnoreCase("ja")) {
             if (opening) {
                 start(output, new Ja());
             }

@@ -42,7 +42,7 @@ public final class ViewUtil {
      *
      * @param view the view or view's parent to look at
      * @param clas the class of the view being looked for
-     * @param <T> the type of the resulting view
+     * @param <T>  the type of the resulting view
      * @return the view or null if not found
      */
     public static @Nullable <T extends View> T getNearestEnclosingViewOfType(final Object view, final Class<T> clas) {
@@ -64,8 +64,7 @@ public final class ViewUtil {
     public static void setJapaneseLocale(final TextView view) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             view.setTextLocales(new LocaleList(Locale.JAPAN, Locale.ROOT));
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        } else {
             view.setTextLocale(Locale.JAPAN);
         }
     }
@@ -78,8 +77,7 @@ public final class ViewUtil {
     public static void setJapaneseLocale(final Paint paint) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             paint.setTextLocales(new LocaleList(Locale.JAPAN, Locale.ROOT));
-        }
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        } else {
             paint.setTextLocale(Locale.JAPAN);
         }
     }
@@ -90,8 +88,6 @@ public final class ViewUtil {
      * @param view the view to set the locale on
      */
     public static void setRootLocale(final TextView view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            view.setTextLocale(Locale.ROOT);
-        }
+        view.setTextLocale(Locale.ROOT);
     }
 }
