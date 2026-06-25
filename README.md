@@ -1,6 +1,6 @@
-# Smouldering Durtles
+# Lukewarm Durtles
 
-Smouldering Durtles is an Android app for WaniKani, forked from the existing codebase of Flaming Durtles, the popular open source client that has fallen into disprear. I'm Joeni over on the site and took on updating the application to support changes in WaniKani's API, in the hopes that Android users will continue to have access.
+Lukewarm Durtles is an Android app for WaniKani, forked from the existing codebase of Smouldering Durtles.
 
 The following is the original information regarding licencing and sharing:
 

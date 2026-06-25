@@ -20,7 +20,6 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.runAsync;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -137,7 +136,6 @@ public final class DataImportExportActivity extends AbstractActivity {
             data.getNamedPresets().add(preset);
         }
         data.setSelfStudyPreset(LiveSearchPresets.getInstance().getByName("\u0000SELF_STUDY_DEFAULT"));
-
         final File exportFile = new File(sharedDir, "search_presets.json");
         try (final FileOutputStream fos = new FileOutputStream(exportFile)) {
             Converters.getObjectMapper().writeValue(fos, data);
@@ -176,8 +174,7 @@ public final class DataImportExportActivity extends AbstractActivity {
         });
     }
 
-    @TargetApi(19)
-    private void importSearchPresetsPost19() {
+    private void importSearchPresets() {
         final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("application/json");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -185,20 +182,6 @@ public final class DataImportExportActivity extends AbstractActivity {
         if (searchPresetsActivityResultLauncher != null) {
             searchPresetsActivityResultLauncher.launch(intent);
         }
-    }
-
-    private void importSearchPresetsPre19() {
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/json");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        if (searchPresetsActivityResultLauncher != null) {
-            searchPresetsActivityResultLauncher.launch(Intent.createChooser(intent, "Select a search presets JSON file to import"));
-        }
-    }
-
-    private void importSearchPresets() {
-        importSearchPresetsPost19();
     }
 
     private void exportStarRatings() {

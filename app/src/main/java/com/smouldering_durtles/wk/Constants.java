@@ -148,8 +148,8 @@ public final class Constants {
             + Identification.APP_NAME + " is an app for <a href=\"https://www.wanikani.com/\">WaniKani</a>, the kanji learning"
             + " service created by <a href=\"https://www.tofugu.com/\">Tofugu</a>.<br/><br/>"
             + " To be able to use this app, you must have an active WaniKani account and a valid API token."
-            + " You haven't yet provided a token yet, or it's expired, so please provide one now to continue. <br/><br/> "
-            + " The only personal data this app stores is your API key, which is used solely for accessing WaniKani’s service. A full privacy policy is available <a href=\"https://jhcooke.com/sd\">here</a>.<br/><br/> "
+            + " You haven't provided a token yet, or it's expired, so please provide one now to continue. <br/><br/> "
+            + " The only personal data this app stores is your API key, which is used solely for accessing WaniKani’s service. A full privacy policy is available <a href=\"https://raw.githubusercontent.com/legarspol/lukewarm_durtles/refs/heads/main/PRIVACY-POLICY.md\">here</a>.<br/><br/> "
             + " If you've not got an account, visit <a href=\"https://www.wanikani.com/\">WaniKani</a> to make one.<br/><br/>"
             + " To create a token, go to your <a href=\"https://www.wanikani.com/settings/personal_access_tokens\">settings page</a>."
             + " Click 'Generate a new token' and when prompted make sure to give the token at least these permissions:<br/><br/>"
@@ -164,15 +164,16 @@ public final class Constants {
      */
     public static final String ABOUT_DOCUMENT = "<h3>Welcome to " + Identification.APP_NAME + " " + BuildConfig.VERSION_NAME + "!</h3><br/> "
             + Identification.APP_NAME + " is an app for <a href=\"https://www.wanikani.com/\">WaniKani</a>, the kanji learning"
-            + " service created by <a href=\"https://www.tofugu.com/\">Tofugu</a>.<br/><br/>"
+            + " service created by <a href=\"https://www.tofugu.com/\">Tofugu</a>.<br/>"
             + " Are you new to WaniKani? Check out their <a href=\"https://knowledge.wanikani.com/\">knowledge base</a>"
-            + " for more information.<br/><br/> "
-            + Identification.APP_NAME + " was re-coded by " + Identification.AUTHOR_NAME + " (known as Joeni) &lt;<a href=\"mailto:" + Identification.AUTHOR_EMAIL
-            + "\">" + Identification.AUTHOR_EMAIL + "</a>&gt; based on the original work of Ernst Jan Plugge who developed the original code. <br/><br/>"
-            + "This app will always be free and open source, but if you'd like to support the development, you can do so by <a href='https://ko-fi.com/jerrycooke' target='_blank'>donating</a>. <br/><br/>"
-            + "It has been independently developed, and is not supported by, affiliated with, or endorsed by Tofugu.<br/><br/>"
-            + Identification.APP_NAME + " has been independently developed, and is not supported by, affiliated with, or endorsed by Tofugu. <br/><br/>"
-            + "Tis app uses these Open Source components:<ul>"
+            + " for more information.<br/><br/>"
+            + Identification.APP_NAME + " has been independently developed, and is not supported by, affiliated with, or endorsed by Tofugu.<br/><br/>"
+            + "it is based on the orignal code as released in turn as:"
+            + "<ul>"
+            + "<li> <b>Smouldering Durtles</b> by Jerry Cooke (aka Joeni)</li>"
+            + "<li> <b>Flaming Durtles</b>, by Ernst Jan Plugge who developed the original code. <br/><br/></li>"
+            + "</ul>"
+            + "This app uses these Open Source components:<ul>"
             + " <li>&nbsp;<a href=\"https://github.com/FasterXML/jackson\">The Jackson Project</a>"
             + " <li>&nbsp;<a href=\"https://airbnb.io/lottie/\">Lottie</a>"
             + " <li>&nbsp;<a href=\"https://jsoup.org/\">JSoup</a>"
@@ -202,14 +203,12 @@ public final class Constants {
             + " <a href=\"" + Identification.SUPPORT_URL + "\">support thread on the forums</a>.<br/><br/>"
             + " On the forums I can most effectively help you resolve your problems, and you can get in touch with other"
             + " users as well.<br/><br/>"
-            + " Alternatively, you can send email to"
-            + " <a href=\"mailto:" + Identification.AUTHOR_EMAIL + "\">" + Identification.AUTHOR_EMAIL + "</a>.<br/><br/>"
             + " If you are having problems with the WaniKani service itself, check out their"
             + " <a href=\"https://knowledge.wanikani.com/\">knowledge base</a>, you will find answers to a lot of questions there.<br/><br/>"
             + " If you want to leave a review, please feel free to do so"
             + " <a href=\"" + Identification.STORE_URL + "\">on the Play Store</a>. I appreciate all honest feedback, regardless of the score"
             + " you want to give, but keep in mind that a store review is not an effective way to get app issues resolved."
-            + " To have your issues addressed, please use the forums or email instead (or in addition to the review).";
+            + " To have your issues addressed, please use the forums instead (or in addition to the review).";
 
     /**
      * The 'here be dragons' warning before allowing the user to change advanced settings.

@@ -302,7 +302,7 @@ public abstract class JobIntentService extends Service {
     }
 
     protected JobIntentService() {
-        if (Build.VERSION.SDK_INT >= 26) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mCompatQueue = null;
         } else {
             mCompatQueue = new ArrayList<>();
@@ -313,7 +313,7 @@ public abstract class JobIntentService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (Build.VERSION.SDK_INT >= 26) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mJobImpl = new JobServiceEngineImpl(this);
             mCompatWorkEnqueuer = null;
         } else {
@@ -382,7 +382,7 @@ public abstract class JobIntentService extends Service {
     private static WorkEnqueuer getWorkEnqueuer(final Context context, final ComponentName cn, final boolean hasJobId, final int jobId) {
         @Nullable WorkEnqueuer we = sClassWorkEnqueuer.get(cn);
         if (we == null) {
-            if (Build.VERSION.SDK_INT >= 26) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!hasJobId) {
                     throw new IllegalArgumentException("Can't be here without a job id");
                 }
