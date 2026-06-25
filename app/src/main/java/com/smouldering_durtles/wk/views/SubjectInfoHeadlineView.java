@@ -16,6 +16,7 @@
 
 package com.smouldering_durtles.wk.views;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -27,6 +28,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 
+import com.smouldering_durtles.wk.activities.AbstractActivity;
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.api.model.Reading;
@@ -154,7 +156,12 @@ public final class SubjectInfoHeadlineView extends ConstraintLayout {
 
         if (toolbar != null) {
             toolbar.setTitle(subject.getInfoTitle("", ""));
-            toolbar.setBackgroundColor(subject.getBackgroundColor());
+            final int color = subject.getBackgroundColor();
+            toolbar.setBackgroundColor(color);
+            final Activity activity = (Activity) getContext();
+            if (activity instanceof AbstractActivity) {
+                ((AbstractActivity) activity).updateStatusBarIconColor(color);
+            }
         }
 
         final boolean showPitchInfo = GlobalSettings.SubjectInfo.getShowPitchInfo() && subject.hasPitchInfo() && showReadingAnswers;

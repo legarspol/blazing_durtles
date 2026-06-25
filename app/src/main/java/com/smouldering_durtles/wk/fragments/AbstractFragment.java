@@ -102,13 +102,19 @@ public abstract class AbstractFragment extends Fragment implements Actment {
             super.onViewCreated(view, savedInstanceState);
             ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) -> {
                 final Insets navBar = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                // Always pad the root so fixed views at the bottom (e.g. Next button) clear the nav bar
+                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), navBar.bottom);
                 final @Nullable View scrollable = findFirstScrollable(v);
                 if (scrollable instanceof ViewGroup) {
                     ((ViewGroup) scrollable).setClipToPadding(false);
-                    scrollable.setPadding(scrollable.getPaddingLeft(), scrollable.getPaddingTop(),
-                            scrollable.getPaddingRight(), navBar.bottom);
-                } else {
-                    v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), navBar.bottom);
+                    if (scrollable == v) {
+                        // Root IS the scrollable — padding already set above, transparency enabled
+                    } else {
+                        // Scrollable is a child — root padding handles bottom clearance,
+                        // clipToPadding=false lets scroll content draw under the nav bar
+                        scrollable.setPadding(scrollable.getPaddingLeft(), scrollable.getPaddingTop(),
+                                scrollable.getPaddingRight(), 0);
+                    }
                 }
                 return WindowInsetsCompat.CONSUMED;
             });
@@ -196,6 +202,10 @@ public abstract class AbstractFragment extends Fragment implements Actment {
                 final int color = getToolbarBackgroundColor();
                 if (color != 0) {
                     toolbar.setBackgroundColor(color);
+                    final @Nullable AbstractActivity activity = getAbstractActivity();
+                    if (activity != null) {
+                        activity.updateStatusBarIconColor(color);
+                    }
                 }
             }
         });

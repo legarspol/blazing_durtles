@@ -218,7 +218,14 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, windowInsets) -> {
             final Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
             final Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, ime.bottom);
+            // No top padding here — toolbar absorbs the status bar inset so its background
+            // colour extends behind the status bar naturally
+            v.setPadding(systemBars.left, 0, systemBars.right, ime.bottom);
+            final @Nullable Toolbar tb = getToolbar();
+            if (tb != null) {
+                tb.setPadding(tb.getPaddingLeft(), systemBars.top,
+                        tb.getPaddingRight(), tb.getPaddingBottom());
+            }
             // Apply nav bar bottom padding to any scrollable view directly in the activity layout
             // (stops at FragmentContainerView — fragments handle their own insets)
             final View activityScrollable = findActivityScrollable(v);
@@ -231,13 +238,12 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             return windowInsets; // pass through so fragment views receive insets
         });
 
+        // Status bar icon colour is driven by the toolbar background colour; when the toolbar
+        // colour changes (e.g. during a session) the caller updates the icon colour via
+        // updateStatusBarIconColor(). Initialise based on the theme's toolbar colour.
         final TypedValue typedValue = new TypedValue();
-        getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true);
-        final boolean isLightBackground = ColorUtils.calculateLuminance(typedValue.data) > 0.5;
-        final WindowInsetsControllerCompat insetsController =
-                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        insetsController.setAppearanceLightStatusBars(isLightBackground);
-        insetsController.setAppearanceLightNavigationBars(isLightBackground);
+        getTheme().resolveAttribute(R.attr.toolbarColorBackground, typedValue, true);
+        updateStatusBarIconColor(typedValue.data);
 
         final @Nullable Toolbar toolbar = getToolbar();
         if (toolbar != null) {
@@ -663,6 +669,20 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
     @Override
     public final @Nullable Toolbar getToolbar() {
         return safeNullable(() -> findViewById(R.id.toolbar));
+    }
+
+    /**
+     * Update the status bar icon colour to contrast against the given toolbar background colour.
+     * Call this whenever the toolbar background changes.
+     */
+    public final void updateStatusBarIconColor(final int toolbarColor) {
+        safe(() -> {
+            final boolean isLight = ColorUtils.calculateLuminance(toolbarColor) > 0.5;
+            final WindowInsetsControllerCompat controller =
+                    WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            controller.setAppearanceLightStatusBars(isLight);
+            controller.setAppearanceLightNavigationBars(isLight);
+        });
     }
 
     /**
