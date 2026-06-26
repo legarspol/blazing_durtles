@@ -21,17 +21,17 @@ public final class Identification {
     /**
      * The name of the app.
      */
-    public static final String APP_NAME = "Lukewarm Durtles";
+    public static final String APP_NAME = "Blazing Durtles";
 
     /**
      * The name of the app as used in a User-Agent HTTP header.
      */
-    public static final String APP_NAME_UA = "Lukewarm Durtles";
+    public static final String APP_NAME_UA = "Blazing Durtles";
 
     /**
      * The name of the app as used in URI schemes.
      */
-    public static final String APP_URI_SCHEME = "lukewarm-durtles";
+    public static final String APP_URI_SCHEME = "blazing-durtles";
 
     /**
      * The WaniKani username of the author.
@@ -41,12 +41,12 @@ public final class Identification {
     /**
      * Support URL for the app.
      */
-    public static final String SUPPORT_URL = "https://raw.githubusercontent.com/legarspol/lukewarm_durtles/refs/heads/main/PRIVACY-POLICY.md";
+    public static final String SUPPORT_URL = "https://raw.githubusercontent.com/legarspol/blazing_durtles/refs/heads/main/PRIVACY-POLICY.md";
 
     /**
      * Store URL for the app.
      */
-    public static final String STORE_URL = "https://raw.githubusercontent.com/legarspol/lukewarm_durtles/refs/heads/main/PRIVACY-POLICY.md";
+    public static final String STORE_URL = "https://raw.githubusercontent.com/legarspol/blazing_durtles/refs/heads/main/PRIVACY-POLICY.md";
 
     private Identification() {
         //

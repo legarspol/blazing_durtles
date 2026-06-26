@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdk 35
     defaultConfig {
-        applicationId "com.legarspol.wk"
+        applicationId "com.blazingdurtles.android"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 84
@@ -12,7 +12,7 @@ android {
         vectorDrawables.generatedDensities = []
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testApplicationId "com.legarspol.wk.test"
+        testApplicationId "com.blazingdurtles.android.test"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -23,18 +23,18 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            resValue 'string', 'fileprovider_authority', 'com.legarspol.wk.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'com.legarspol.wk.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'com.blazingdurtles.android.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'com.blazingdurtles.android.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/label'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.legarspol.wk.fileprovider"'
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.blazingdurtles.android.fileprovider"'
             signingConfig signingConfigs.debug
         }
         debug {
             applicationIdSuffix '.debug'
-            resValue 'string', 'fileprovider_authority', 'com.legarspol.wk.debug.fileprovider'
-            resValue 'string', 'searchprovider_authority', 'com.legarspol.wk.debug.db.SubjectContentProvider'
+            resValue 'string', 'fileprovider_authority', 'com.blazingdurtles.android.debug.fileprovider'
+            resValue 'string', 'searchprovider_authority', 'com.blazingdurtles.android.debug.db.SubjectContentProvider'
             resValue 'string', 'applabel', '@string/labelDebug'
-            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.legarspol.wk.debug.fileprovider"'
+            buildConfigField 'String', 'FILEPROVIDER_AUTHORITY', '"com.blazingdurtles.android.debug.fileprovider"'
         }
     }
     sourceSets {

@@ -1,7 +1,7 @@
 <resources>
-    <string name="about_label">About Lukewarm Durtles</string>
-    <string name="label">Lukewarm Durtles</string>
-    <string name="labelDebug">Lukewarm Durtles - Debug</string>
-    <string name="uri_scheme">lukewarm-durtles</string>
-    <string name="subject_info_uri">lukewarm-durtles://subject-info</string>
+    <string name="about_label">About Blazing Durtles</string>
+    <string name="label">Blazing Durtles</string>
+    <string name="labelDebug">Blazing Durtles - Debug</string>
+    <string name="uri_scheme">blazingdurtles</string>
+    <string name="subject_info_uri">blazingdurtles://subject-info</string>
 </resources>

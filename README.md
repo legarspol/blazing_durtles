@@ -1,6 +1,6 @@
-# Lukewarm Durtles
+# Blazing Durtles
 
-Lukewarm Durtles is an Android app for WaniKani, forked from the existing codebase of Smouldering Durtles.
+Blazing Durtles is an Android app for WaniKani, forked from the existing codebase of Smouldering Durtles.
 
 The following is the original information regarding licencing and sharing:
 

@@ -1,8 +1,8 @@
-Privacy Policy for Lukewarm Durtles
+Privacy Policy for Blazing Durtles
 Effective date: 2026-06-24
 
 Introduction
-Lukewarm Durtles (“us”, “we”, or “our”) operates as a third-party client application for the WaniKani service. This developer and publisher of the application is the Lukewarm Durtles open source contributor ("developer"). This privacy policy describes how we collect, use, and protect your information when you use the Lukewarm Durtles Android application (the “App”).
+Blazing Durtles (“us”, “we”, or “our”) operates as a third-party client application for the WaniKani service. This developer and publisher of the application is the Blazing Durtles open source contributor ("developer"). This privacy policy describes how we collect, use, and protect your information when you use the Blazing Durtles Android application (the “App”).
 
 We take your privacy seriously and are committed to ensuring that your personal information is protected. By using the App, you agree to the collection and use of information in accordance with this policy.
 
