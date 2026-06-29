@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Blazing Durtles can send diagnostics to help fix bugs and improve the app. This is optional and you can change it any time in Settings."
+            android:paddingBottom="16dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switch_crash_reporting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Crash reporting"
+            android:checked="true"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send crash and error reports (Firebase Crashlytics) so bugs can be found and fixed."
+            android:textSize="12sp"
+            android:paddingBottom="16dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switch_analytics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Usage analytics"
+            android:checked="false"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share anonymous usage data (Firebase Analytics) to help improve the app."
+            android:textSize="12sp"/>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -38,7 +38,7 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
   - `…/data` (in `:app` for now) — avoids the Android *framework* by convention; promotion to its own module is deferred until its Room/Ktor shape settles.
   - `…/ui` — Jetpack Compose screens + ViewModels.
   - `…/platform` — everything Android-specific: widget, notifications, alarms, WorkManager, `Context`.
-- Build config (`:app`): `compileSdk 35`, `minSdk 21`, `targetSdk 35`, namespace `com.smouldering_durtles.wk`.
+- Build config (`:app`): `compileSdk 35`, `minSdk 23`, `targetSdk 35`, namespace `com.smouldering_durtles.wk`. (`minSdk` was 21; Firebase BOM 33+ declares `minSdk 23` across every SDK, so Crashlytics/Analytics forced the bump.)
 
 ## Code conventions
 

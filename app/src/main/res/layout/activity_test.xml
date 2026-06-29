@@ -95,6 +95,22 @@
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
 
+            <Button
+                android:id="@+id/crashButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Test Crash"
+                style="@style/WK.Button.Normal"
+                tools:ignore="UnusedIds"/>
+
+            <Button
+                android:id="@+id/caughtExceptionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Test Caught Exception"
+                style="@style/WK.Button.Normal"
+                tools:ignore="UnusedIds"/>
+
             <TextView
                 android:id="@+id/document"
                 android:layout_width="match_parent"

@@ -21,12 +21,14 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 import static java.util.Objects.requireNonNull;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.enums.SubjectType;
 import com.smouldering_durtles.wk.model.PitchInfo;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
@@ -69,6 +71,8 @@ public final class TestActivity extends AbstractActivity {
         new ViewProxy(this, R.id.checkPitchInfoButton).setOnClickListener(v -> checkPitchInfo());
         new ViewProxy(this, R.id.testButton).setOnClickListener(v -> theButton());
         new ViewProxy(this, R.id.testButton2).setOnClickListener(v -> theButton2());
+        new ViewProxy(this, R.id.crashButton).setOnClickListener(v -> crashButtonClicked());
+        new ViewProxy(this, R.id.caughtExceptionButton).setOnClickListener(v -> caughtExceptionButtonClicked());
 
         final ViewProxy testModeSwitch = new ViewProxy(this, R.id.testModeSwitch);
         testModeSwitch.setChecked(GlobalSettings.getTestMode());
@@ -215,5 +219,25 @@ public final class TestActivity extends AbstractActivity {
             document.setText("Click 2!");
             goToActivity(NoApiKeyHelpActivity.class);
         });
+    }
+
+    private void crashButtonClicked() {
+        throw new RuntimeException("Test Crash"); // Force a crash
+    }
+
+    private void caughtExceptionButtonClicked() {
+        try {
+            throw new IllegalStateException("Test caught exception");
+        }
+        catch (final IllegalStateException e) {
+            Diagnostics.logException(e, "Test caught exception button tapped");
+            // The report is silently dropped when the user hasn't opted in, so say
+            // which of the two actually happened.
+            final boolean reported = GlobalSettings.Diagnostics.getConsentRequested()
+                    && GlobalSettings.Diagnostics.isCrashReportingEnabled();
+            Toast.makeText(this, reported
+                    ? "Recorded non-fatal exception"
+                    : "Dropped: crash reporting is off", Toast.LENGTH_SHORT).show();
+        }
     }
 }
