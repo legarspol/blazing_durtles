@@ -26,6 +26,7 @@ public final class HapticUtil {
         feedback(view, context, HapticFeedbackConstants.REJECT, 200);
     }
 
+    @SuppressWarnings("deprecation")
     private static void feedback(final View view, final Context context, final int constant, final long fallbackMs) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             view.performHapticFeedback(constant);
