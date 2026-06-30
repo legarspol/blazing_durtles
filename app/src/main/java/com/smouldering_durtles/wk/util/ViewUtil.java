@@ -90,4 +90,5 @@ public final class ViewUtil {
     public static void setRootLocale(final TextView view) {
         view.setTextLocale(Locale.ROOT);
     }
+
 }

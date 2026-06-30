@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
@@ -311,6 +312,6 @@ public final class SubjectInfoHeadlineView extends ConstraintLayout {
     }
 
     private int sp2px(final int sp) {
-        return (int) (sp * getResources().getDisplayMetrics().scaledDensity);
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, getResources().getDisplayMetrics());
     }
 }
