@@ -9,6 +9,12 @@ Read the issue's acceptance criteria (gh issue view <the issue number>),
 then the diff:
 git diff origin/main...origin/ai/issue-<the issue number>
 
+You do NOT have a build tool: do NOT attempt to run ./gradlew or any build
+command (the attempt will be denied and only wastes turns). The coder
+already ran ./gradlew build before pushing, and the pipeline gates on it.
+Judge "code that does not compile" (rule 1) by reading the diff, not by
+building. Your only shell commands are git and `gh issue view`.
+
 Rules:
 
 1. Blocking issues are ONLY: acceptance criteria not met, code that
