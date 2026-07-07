@@ -6,7 +6,7 @@
 
 **Never touch files outside the ticket's scope list.** Each ticket names the files/packages it may change. Do not edit, rename, move, reformat, or "drive-by fix" anything else — not imports in a neighbouring class, not an unrelated warning, not formatting. If a change seems required outside scope, **stop and flag it** for a separate ticket instead of doing it. Small, in-scope diffs are the whole point (they make review sharp and keep the app releasable between merges).
 
-Migration tickets follow `docs/TICKET_TEMPLATE.md` (Context / Files in scope / Acceptance criteria / Out of scope / Size — no L tickets, split them). Create them with `gh issue create` and the `migration` label. The "Files in scope" list is the scope list this rule refers to.
+Migration tickets follow `docs/TICKET_TEMPLATE.md` (Context / Files in scope / Acceptance criteria / Out of scope / Size — no L tickets, split them). Its **Files in scope** list is the scope list this rule refers to. Agent-implementable tickets are labeled `ai-task` + `ready`; human-only tickets are `human-task`. The automated coder → reviewer → fix pipeline is defined in `.github/workflows/migration-bot.yml` and `.github/prompts/*.md`. **Never edit anything under `.github/`** (workflows or prompts), and never touch `review.md` in a normal ticket.
 
 ## Stack (do not deviate without an explicit decision)
 
