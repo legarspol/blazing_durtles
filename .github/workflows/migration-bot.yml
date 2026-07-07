@@ -48,7 +48,7 @@ jobs:
           # Prompt file is read by Claude itself: works on any action version,
           # no dependency on a specific CLI flag being supported.
           prompt: "Read .github/prompts/coder.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model claude-sonnet-5 --max-turns 40 --allowedTools "Bash(git:*),Bash(./gradlew:*),Bash(gh issue:*),Read,Write,Edit,Grep,Glob"'
+          claude_args: '--model claude-sonnet-4-6 --max-turns 40 --allowedTools "Bash(git:*),Bash(./gradlew:*),Bash(gh issue:*),Read,Write,Edit,Grep,Glob"'
 
       # If the coder hit its escape hatch (labeled the issue blocked and stopped),
       # no branch exists. Everything downstream is pointless without one, so we
@@ -73,7 +73,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model claude-sonnet-5 --max-turns 15 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+          claude_args: '--model claude-sonnet-4-6 --max-turns 30 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
 
       - name: Read verdict
         if: steps.branch.outputs.exists == 'true'
@@ -92,7 +92,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/fix.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model claude-sonnet-5 --max-turns 25 --allowedTools "Bash(git:*),Bash(./gradlew:*),Read,Write,Edit,Grep,Glob"'
+          claude_args: '--model claude-sonnet-4-6 --max-turns 25 --allowedTools "Bash(git:*),Bash(./gradlew:*),Read,Write,Edit,Grep,Glob"'
 
       - name: Second review (only if revise)
         if: steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
@@ -101,7 +101,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}. This is the second and final review, after fixes."
-          claude_args: '--model claude-sonnet-5 --max-turns 15 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+          claude_args: '--model claude-sonnet-4-6 --max-turns 30 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
 
       # NOTE: we deliberately grep review.md directly here instead of using
       # steps.verdict1. After a fix cycle, review.md has been overwritten by the
