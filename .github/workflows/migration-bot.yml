@@ -1,0 +1,125 @@
+name: Migration bot
+
+on:
+  schedule:
+    - cron: '0 6 * * *'    # about 7am London
+    - cron: '0 16 * * *'   # about 5pm London
+  workflow_dispatch:        # manual trigger button for testing
+
+# Never let two runs overlap (cron + manual, or a slow run meeting the next cron)
+concurrency:
+  group: migration-bot
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write   # required for the Claude GitHub App OIDC token exchange
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth 0 is required: the reviewer diffs the branch against main,
+      # which needs full history. Do not "optimize" this to a shallow clone.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pick next ticket
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE=$(gh issue list --label ai-task --label ready --state open \
+            --json number --jq 'sort_by(.number) | .[0].number // empty')
+          if [ -z "$ISSUE" ]; then
+            echo "No ready ai-task issues. Nothing to do."
+          fi
+          echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
+
+      - name: Coder
+        if: steps.pick.outputs.issue != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          # Prompt file is read by Claude itself: works on any action version,
+          # no dependency on a specific CLI flag being supported.
+          prompt: "Read .github/prompts/coder.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
+          claude_args: '--model claude-sonnet-4-6 --max-turns 40 --allowedTools "Bash(git:*),Bash(./gradlew:*),Bash(gh issue:*),Read,Write,Edit,Grep,Glob"'
+
+      # If the coder hit its escape hatch (labeled the issue blocked and stopped),
+      # no branch exists. Everything downstream is pointless without one, so we
+      # gate the rest of the pipeline on this check instead of failing cryptically.
+      - name: Check branch exists
+        if: steps.pick.outputs.issue != ''
+        id: branch
+        env:
+          ISSUE: ${{ steps.pick.outputs.issue }}
+        run: |
+          if git ls-remote --exit-code --heads origin "ai/issue-$ISSUE" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No branch ai/issue-$ISSUE on origin. Coder likely blocked the ticket. Stopping here."
+          fi
+
+      - name: Reviewer
+        if: steps.branch.outputs.exists == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
+          claude_args: '--model claude-sonnet-4-6 --max-turns 15 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+
+      - name: Read verdict
+        if: steps.branch.outputs.exists == 'true'
+        id: verdict1
+        run: |
+          if grep -q "VERDICT: APPROVE" review.md; then
+            echo "verdict=approve" >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=revise" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fix (only if revise)
+        if: steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: "Read .github/prompts/fix.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
+          claude_args: '--model claude-sonnet-4-6 --max-turns 25 --allowedTools "Bash(git:*),Bash(./gradlew:*),Read,Write,Edit,Grep,Glob"'
+
+      - name: Second review (only if revise)
+        if: steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}. This is the second and final review, after fixes."
+          claude_args: '--model claude-sonnet-4-6 --max-turns 15 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+
+      # NOTE: we deliberately grep review.md directly here instead of using
+      # steps.verdict1. After a fix cycle, review.md has been overwritten by the
+      # second review, so the file is always the freshest verdict while verdict1
+      # is stale. Do not "simplify" this to use verdict1.
+      - name: Open PR and assign Pol
+        if: steps.branch.outputs.exists == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pick.outputs.issue }}
+        run: |
+          BRANCH="ai/issue-$ISSUE"
+          # || true tolerates reruns where the PR already exists
+          gh pr create --head "$BRANCH" \
+            --title "AI: $(gh issue view "$ISSUE" --json title --jq .title)" \
+            --body-file review.md \
+            --assignee legarspol || true
+          if ! grep -q "VERDICT: APPROVE" review.md; then
+            gh pr edit "$BRANCH" --add-label needs-human-attention
+          fi
+          gh issue edit "$ISSUE" --remove-label ready
