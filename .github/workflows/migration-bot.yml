@@ -45,6 +45,7 @@ jobs:
           echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
 
       - name: Coder
+        id: coder
         if: steps.pick.outputs.issue != ''
         uses: anthropics/claude-code-action@v1
         with:
@@ -53,7 +54,25 @@ jobs:
           # Prompt file is read by Claude itself: works on any action version,
           # no dependency on a specific CLI flag being supported.
           prompt: "Read .github/prompts/coder.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 40 --allowedTools "Bash(git:*),Bash(./gradlew:*),Bash(gh issue:*),Read,Write,Edit,Grep,Glob"'
+          # CI is non-interactive: any tool not in an allowlist is auto-denied (no
+          # human to approve). A narrow allowlist silently burned the coder's turns
+          # on denied calls until it hit the cap. On an ephemeral runner the right
+          # answer is to skip the permission gate entirely, not to play allowlist
+          # whack-a-mole. Turn budget also raised: issue work + a full ./gradlew
+          # build is genuinely turn-hungry.
+          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 60 --dangerously-skip-permissions'
+
+      # Capture the full turn-by-turn execution log as an artifact so failures can
+      # be diagnosed from the transcript instead of guessing. if: always() so we
+      # still get it when the step fails. Each Claude step overwrites this file, so
+      # we upload immediately after each one.
+      - name: Upload coder log
+        if: always() && steps.pick.outputs.issue != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coder-log
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
 
       # If the coder hit its escape hatch (labeled the issue blocked and stopped),
       # no branch exists. Everything downstream is pointless without one, so we
@@ -72,13 +91,22 @@ jobs:
           fi
 
       - name: Reviewer
+        id: reviewer
         if: steps.branch.outputs.exists == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 30 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 30 --dangerously-skip-permissions'
+
+      - name: Upload reviewer log
+        if: always() && steps.branch.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reviewer-log
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
 
       - name: Read verdict
         if: steps.branch.outputs.exists == 'true'
@@ -91,22 +119,40 @@ jobs:
           fi
 
       - name: Fix (only if revise)
+        id: fix
         if: steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/fix.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}."
-          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 25 --allowedTools "Bash(git:*),Bash(./gradlew:*),Read,Write,Edit,Grep,Glob"'
+          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 40 --dangerously-skip-permissions'
+
+      - name: Upload fix log
+        if: always() && steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fix-log
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
 
       - name: Second review (only if revise)
+        id: second_review
         if: steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: "Read .github/prompts/reviewer.md and follow it exactly. The issue number is ${{ steps.pick.outputs.issue }}. This is the second and final review, after fixes."
-          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 30 --allowedTools "Bash(git:*),Bash(gh issue view:*),Read,Write,Grep,Glob"'
+          claude_args: '--model ${{ env.CLAUDE_MODEL }} --max-turns 30 --dangerously-skip-permissions'
+
+      - name: Upload second review log
+        if: always() && steps.branch.outputs.exists == 'true' && steps.verdict1.outputs.verdict == 'revise'
+        uses: actions/upload-artifact@v4
+        with:
+          name: second-review-log
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
 
       # NOTE: we deliberately grep review.md directly here instead of using
       # steps.verdict1. After a fix cycle, review.md has been overwritten by the
