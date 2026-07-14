@@ -10,10 +10,17 @@ Rules:
 1. Create and switch to a branch named EXACTLY ai/issue-<the issue number>.
    The rest of the pipeline derives this name, so it must match exactly.
 2. Only modify files listed in the issue's "Files in scope".
-3. Meet every acceptance criterion. Run ./gradlew build and make sure it
-   passes before finishing.
-4. If you cannot make the build pass, or the ticket is impossible as
-   written: do NOT force it, and do NOT push a broken branch. Instead run
+3. Meet every acceptance criterion. Run ./gradlew assembleDebug and make
+   sure it passes before finishing. Do NOT run ./gradlew build: it adds
+   release minification, lint and unit tests, which is far slower and can
+   surface pre-existing failures that are unrelated to your ticket and not
+   yours to fix. assembleDebug is the build gate (see CLAUDE.md).
+4. Do not burn turns thrashing. Use well-known stable dependency versions;
+   do not probe Maven/plugin repositories or read toolchain docs over many
+   turns to discover version numbers. If assembleDebug still will not pass
+   after a couple of focused attempts, the ticket is blocked, or it is
+   impossible as written: do NOT force it, and do NOT push a broken branch.
+   Instead run
    gh issue edit <the issue number> --add-label blocked --remove-label ready
    then add a comment with gh issue comment explaining exactly what blocked
    you, and stop. Pushing no branch is the correct outcome in this case.

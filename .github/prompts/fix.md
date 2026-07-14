@@ -8,8 +8,9 @@ git fetch origin
 git checkout ai/issue-<the issue number>
 
 Then address ONLY the numbered blocking items from review.md. Ignore non
-blocking comments. Run ./gradlew build and make sure it passes, commit,
-and push to the same branch.
+blocking comments. Run ./gradlew assembleDebug (NOT ./gradlew build, which
+is far slower and surfaces unrelated release/lint/test failures) and make
+sure it passes, commit, and push to the same branch.
 
 Do not make any other changes. Never commit review.md. Do not touch
 .github/ or any workflow or prompt files.
