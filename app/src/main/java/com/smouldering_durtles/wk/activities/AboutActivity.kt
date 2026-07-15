@@ -13,71 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.smouldering_durtles.wk.activities
 
-package com.smouldering_durtles.wk.activities;
-
-import android.os.Bundle;
-import android.widget.ImageView;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.smouldering_durtles.wk.R;
-import com.smouldering_durtles.wk.proxy.ViewProxy;
-
-import javax.annotation.Nullable;
-
-import static com.smouldering_durtles.wk.Constants.ABOUT_DOCUMENT;
-
-import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
+import android.os.Bundle
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.smouldering_durtles.wk.Constants
+import com.smouldering_durtles.wk.R
+import com.smouldering_durtles.wk.proxy.ViewProxy
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation
 
 /**
  * Simple activity that only shows a big TextView. Shows the app's 'about' information.
  */
-public final class AboutActivity extends AbstractActivity {
-    /**
-     * The constructor.
-     */
-    public AboutActivity() {
-        super(R.layout.activity_about, R.menu.generic_options_menu);
-    }
+class AboutActivity : AbstractActivity(R.layout.activity_about, R.menu.generic_options_menu) {
+    override fun onCreateLocal(savedInstanceState: Bundle?) {
+        val document = ViewProxy(this, R.id.document)
+        document.setTextHtml(Constants.ABOUT_DOCUMENT)
+        document.setLinkMovementMethod()
 
-
-    @Override
-    protected void onCreateLocal(final @Nullable Bundle savedInstanceState) {
-        final ViewProxy document = new ViewProxy(this, R.id.document);
-        document.setTextHtml(ABOUT_DOCUMENT);
-        document.setLinkMovementMethod();
-
-        ImageView imageViewGif = findViewById(R.id.imageViewGif);
+        val imageViewGif = findViewById<ImageView>(R.id.imageViewGif)
         Glide.with(this)
-                .asGif()
-                .load(R.drawable.welcome) // replace with your actual gif resource
-                .apply(RequestOptions.bitmapTransform(new RoundedCornersTransformation(30, 0))) // here is where the rounding is applied
-                .into(imageViewGif);
+            .asGif()
+            .load(R.drawable.welcome) // replace with your actual gif resource
+            .apply(
+                RequestOptions.bitmapTransform(
+                    RoundedCornersTransformation(
+                        30,
+                        0
+                    )
+                )
+            ) // here is where the rounding is applied
+            .into(imageViewGif)
     }
 
-    @Override
-    protected void onResumeLocal() {
+    override fun onResumeLocal() {
         //
     }
 
-    @Override
-    protected void onPauseLocal() {
+    override fun onPauseLocal() {
         //
     }
 
-    @Override
-    protected void enableInteractionLocal() {
+    override fun enableInteractionLocal() {
         //
     }
 
-    @Override
-    protected void disableInteractionLocal() {
+    override fun disableInteractionLocal() {
         //
     }
 
-    @Override
-    protected boolean showWithoutApiKey() {
-        return true;
+    override fun showWithoutApiKey(): Boolean {
+        return true
     }
 }
