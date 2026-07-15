@@ -16,16 +16,12 @@
 
 package com.smouldering_durtles.wk.util;
 
-import android.annotation.TargetApi;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.arch.core.util.Function;
 import androidx.core.content.ContextCompat;
@@ -81,6 +77,16 @@ public final class AudioUtil {
     private static @Nullable MediaPlayer savedMediaPlayer = null;
 
     private static boolean lastWasMale = false;
+
+    /**
+     * The audio focus grant currently held on API 26+, if any.
+     */
+    private static @Nullable AudioFocusRequest currentFocusRequest = null;
+
+    /**
+     * The audio focus grant currently held on API 21-25, if any.
+     */
+    private static @Nullable AudioManager.OnAudioFocusChangeListener currentFocusListener = null;
 
     private AudioUtil() {
         //
@@ -615,157 +621,112 @@ public final class AudioUtil {
         }
     }
 
-    @TargetApi(26)
-    private static void playAudioPost26(final AudioManager audioManager, final MediaPlayer player, final GenderedFile audioFile,
-                                        final boolean useAudioFocus) throws Exception {
-        final AudioAttributes attributes = new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build();
-        player.setAudioAttributes(attributes);
-        player.setDataSource(WkApplication.getInstance(), Uri.fromFile(audioFile));
-        player.prepare();
+    /**
+     * Request transient audio focus that allows other apps to duck (not pause). Version-branched:
+     * API 26+ uses {@link AudioFocusRequest}, API 21-25 uses the deprecated
+     * {@code requestAudioFocus(listener, int, int)}.
+     *
+     * @param audioManager the audio manager to request focus from
+     * @return true if focus was granted
+     */
+    @SuppressWarnings({"deprecation", "RedundantSuppression"})
+    private static boolean requestAudioFocus(final AudioManager audioManager) {
         final AudioManager.OnAudioFocusChangeListener listener = focusChange -> {
-            try {
-                if (focusChange == AudioManager.AUDIOFOCUS_LOSS
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                    player.stop();
-                }
-            }
-            catch (final Exception e) {
-                //
+            if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                stopCurrentPlayback();
             }
         };
-        final AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                .setAudioAttributes(attributes)
-                .setOnAudioFocusChangeListener(listener)
-                .build();
-        if (useAudioFocus) {
-            final int result = audioManager.requestAudioFocus(request);
-            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                return;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            final AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                    .setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                    .setOnAudioFocusChangeListener(listener)
+                    .build();
+            if (audioManager.requestAudioFocus(request) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                return false;
             }
+            currentFocusRequest = request;
+            return true;
         }
-        player.setOnCompletionListener(mp -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            try {
-                mp.reset();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                mp.release();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                if (useAudioFocus) {
-                    audioManager.abandonAudioFocusRequest(request);
-                }
-            }
-            catch (final Exception e) {
-                //
-            }
-        }, 1500));
-        player.start();
+
+        if (audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            return false;
+        }
+        currentFocusListener = listener;
+        return true;
     }
 
-    @TargetApi(21)
+    /**
+     * Abandon whichever audio focus grant (request or listener, depending on API level) is
+     * currently held, if any.
+     *
+     * @param audioManager the audio manager to abandon focus with
+     */
     @SuppressWarnings({"deprecation", "RedundantSuppression"})
-    private static void playAudioPost21(final AudioManager audioManager, final MediaPlayer player, final GenderedFile audioFile,
-                                        final boolean useAudioFocus) throws Exception {
-        player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
-        player.setDataSource(WkApplication.getInstance(), Uri.fromFile(audioFile));
-        player.prepare();
-        final AudioManager.OnAudioFocusChangeListener listener = focusChange -> {
-            try {
-                if (focusChange == AudioManager.AUDIOFOCUS_LOSS
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                    player.stop();
+    private static void abandonAudioFocus(final AudioManager audioManager) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (currentFocusRequest != null) {
+                    audioManager.abandonAudioFocusRequest(currentFocusRequest);
+                    currentFocusRequest = null;
                 }
             }
-            catch (final Exception e) {
-                //
-            }
-        };
-        if (useAudioFocus) {
-            final int result = audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                return;
+            else if (currentFocusListener != null) {
+                audioManager.abandonAudioFocus(currentFocusListener);
+                currentFocusListener = null;
             }
         }
-        player.setOnCompletionListener(mp -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            try {
-                mp.reset();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                mp.release();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                if (useAudioFocus) {
-                    audioManager.abandonAudioFocus(listener);
-                }
-            }
-            catch (final Exception e) {
-                //
-            }
-        }, 1500));
-        player.start();
+        catch (final Exception e) {
+            //
+        }
     }
 
-    @SuppressWarnings({"deprecation", "RedundantSuppression"})
-    private static void playAudioPre21(final AudioManager audioManager, final MediaPlayer player, final GenderedFile audioFile,
-                                       final boolean useAudioFocus) throws Exception {
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setDataSource(WkApplication.getInstance(), Uri.fromFile(audioFile));
-        player.prepare();
-        final AudioManager.OnAudioFocusChangeListener listener = focusChange -> {
+    /**
+     * Stop and release the currently playing MediaPlayer, if any, and abandon its audio focus.
+     * Called before starting new playback (so rapid taps don't overlap), and on
+     * {@code AUDIOFOCUS_LOSS} (e.g. an incoming call).
+     */
+    private static void stopCurrentPlayback() {
+        final @Nullable MediaPlayer player = savedMediaPlayer;
+        savedMediaPlayer = null;
+        if (player != null) {
             try {
-                if (focusChange == AudioManager.AUDIOFOCUS_LOSS
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
-                        || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                    player.stop();
-                }
+                player.stop();
             }
             catch (final Exception e) {
                 //
             }
-        };
-        if (useAudioFocus) {
-            final int result = audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                return;
+            try {
+                player.release();
+            }
+            catch (final Exception e) {
+                //
             }
         }
-        player.setOnCompletionListener(mp -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            try {
-                mp.reset();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                mp.release();
-            }
-            catch (final Exception e) {
-                //
-            }
-            try {
-                if (useAudioFocus) {
-                    audioManager.abandonAudioFocus(listener);
-                }
-            }
-            catch (final Exception e) {
-                //
-            }
-        }, 1500));
-        player.start();
+        final @Nullable AudioManager audioManager = ContextCompat.getSystemService(WkApplication.getInstance(), AudioManager.class);
+        if (audioManager != null) {
+            abandonAudioFocus(audioManager);
+        }
+    }
+
+    /**
+     * Release a MediaPlayer that finished playing or errored out, and abandon its audio focus.
+     *
+     * @param player the player to release
+     * @param audioManager the audio manager to abandon focus with
+     */
+    private static void releasePlayer(final MediaPlayer player, final AudioManager audioManager) {
+        if (savedMediaPlayer == player) {
+            savedMediaPlayer = null;
+        }
+        try {
+            player.release();
+        }
+        catch (final Exception e) {
+            //
+        }
+        abandonAudioFocus(audioManager);
     }
 
     /**
@@ -792,28 +753,66 @@ public final class AudioUtil {
         }
     }
 
-    private static void playLocalAudio(GenderedFile audioFile) {
+    private static void playLocalAudio(final GenderedFile audioFile) {
         safe(() -> {
+            stopCurrentPlayback();
+
+            final @Nullable AudioManager audioManager = ContextCompat.getSystemService(WkApplication.getInstance(), AudioManager.class);
+            if (audioManager == null || !requestAudioFocus(audioManager)) {
+                return;
+            }
+
             final MediaPlayer player = new MediaPlayer();
             savedMediaPlayer = player;
             lastWasMale = audioFile.isMale();
 
-            // Use audioFile directly
-            player.setDataSource(audioFile.getAbsolutePath());
-            player.prepare();
-            player.start();
+            player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
+            player.setOnCompletionListener(mp -> releasePlayer(mp, audioManager));
+            player.setOnErrorListener((mp, what, extra) -> {
+                releasePlayer(mp, audioManager);
+                return true;
+            });
+
+            try {
+                // Use audioFile directly
+                player.setDataSource(audioFile.getAbsolutePath());
+                player.prepare();
+                player.start();
+            }
+            catch (final Exception e) {
+                releasePlayer(player, audioManager);
+            }
         });
     }
 
-    private static void playStreamingAudio(PronunciationAudio audio) {
+    private static void playStreamingAudio(final PronunciationAudio audio) {
         safe(() -> {
+            stopCurrentPlayback();
+
+            final @Nullable AudioManager audioManager = ContextCompat.getSystemService(WkApplication.getInstance(), AudioManager.class);
+            if (audioManager == null || !requestAudioFocus(audioManager)) {
+                return;
+            }
+
             final MediaPlayer player = new MediaPlayer();
             savedMediaPlayer = player;
-
             lastWasMale = audio.getMetadata().isMale();
-            player.setDataSource(audio.getUrl());
-            player.prepare();
-            player.start();
+
+            player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
+            player.setOnCompletionListener(mp -> releasePlayer(mp, audioManager));
+            player.setOnErrorListener((mp, what, extra) -> {
+                releasePlayer(mp, audioManager);
+                return true;
+            });
+            player.setOnPreparedListener(MediaPlayer::start);
+
+            try {
+                player.setDataSource(audio.getUrl());
+                player.prepareAsync();
+            }
+            catch (final Exception e) {
+                releasePlayer(player, audioManager);
+            }
         });
     }
 
