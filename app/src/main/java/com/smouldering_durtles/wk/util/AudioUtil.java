@@ -32,7 +32,6 @@ import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.PronunciationAudioOwner;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.db.model.SubjectPronunciationAudio;
-import com.smouldering_durtles.wk.enums.VoicePreference;
 import com.smouldering_durtles.wk.livedata.LiveAudioDownloadStatus;
 import com.smouldering_durtles.wk.model.GenderedFile;
 
@@ -42,20 +41,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 import static com.smouldering_durtles.wk.Constants.AUDIO_DIRECTORY_NAME;
-import static com.smouldering_durtles.wk.enums.VoicePreference.ALTERNATE;
-import static com.smouldering_durtles.wk.enums.VoicePreference.FEMALE;
-import static com.smouldering_durtles.wk.enums.VoicePreference.MALE;
 import static com.smouldering_durtles.wk.util.ObjectSupport.isEmpty;
-import static com.smouldering_durtles.wk.util.ObjectSupport.isEqual;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
-import static com.smouldering_durtles.wk.util.ObjectSupport.shuffle;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -71,13 +62,17 @@ public final class AudioUtil {
     private static final AudioStorage AUDIO_STORAGE = new AudioStorage();
 
     /**
+     * The voice/reading selection logic. AudioUtil's still-internal callers hold this instance
+     * until the AudioPlayer ticket extracts them.
+     */
+    private static final AudioSelector AUDIO_SELECTOR = new AudioSelector(AUDIO_STORAGE);
+
+    /**
      * An unused reference to the most recent MediaPlayer instance. This is kept around so it
      * doesn't get recycled before it is done playing.
      */
     @SuppressWarnings({"unused", "FieldCanBeLocal", "RedundantSuppression"})
     private static @Nullable MediaPlayer savedMediaPlayer = null;
-
-    private static boolean lastWasMale = false;
 
     /**
      * The audio focus grant currently held on API 26+, if any.
@@ -101,58 +96,7 @@ public final class AudioUtil {
      * @return the file, or null if none exists
      */
     private static @Nullable GenderedFile getOneAudioFile(final Subject subject) {
-        final List<PronunciationAudio> shuffled = shuffle(subject.getParsedPronunciationAudios());
-        if (shuffled.isEmpty()) {
-            return null;
-        }
-
-        final VoicePreference voicePreference = GlobalSettings.Audio.getVoicePreference();
-        final boolean malePreferred = voicePreference == MALE || voicePreference == ALTERNATE && !lastWasMale;
-        final boolean femalePreferred = voicePreference == FEMALE || voicePreference == ALTERNATE && lastWasMale;
-
-        final int level = subject.getLevel();
-        final Iterable<String> locationValues = AUDIO_STORAGE.getLocationValues();
-
-        final Comparator<PronunciationAudio> comparator = (o1, o2) -> {
-            if (o1 == o2) {
-                return 0;
-            }
-            if (AUDIO_STORAGE.hasAudioFileFor(level, o1, locationValues) && !AUDIO_STORAGE.hasAudioFileFor(level, o2, locationValues)) {
-                return -1;
-            }
-            if (AUDIO_STORAGE.hasAudioFileFor(level, o2, locationValues) && !AUDIO_STORAGE.hasAudioFileFor(level, o1, locationValues)) {
-                return 1;
-            }
-            if (subject.isPrimaryReading(o1.getMetadata().getPronunciation())
-                    && !subject.isPrimaryReading(o2.getMetadata().getPronunciation())) {
-                return -1;
-            }
-            if (subject.isPrimaryReading(o2.getMetadata().getPronunciation())
-                    && !subject.isPrimaryReading(o1.getMetadata().getPronunciation())) {
-                return 1;
-            }
-            if (malePreferred) {
-                if (o1.getMetadata().isMale() && !o2.getMetadata().isMale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isMale() && !o1.getMetadata().isMale()) {
-                    return 1;
-                }
-            }
-            if (femalePreferred) {
-                if (o1.getMetadata().isFemale() && !o2.getMetadata().isFemale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isFemale() && !o1.getMetadata().isFemale()) {
-                    return 1;
-                }
-            }
-            return 0;
-        };
-
-        Collections.sort(shuffled, comparator);
-
-        return AUDIO_STORAGE.getExistingFileForAudio(level, shuffled.get(0), locationValues);
+        return AUDIO_SELECTOR.getOneAudioFile(subject);
     }
 
     /**
@@ -165,65 +109,7 @@ public final class AudioUtil {
      */
     public static @Nullable GenderedFile getOneAudioFileMustMatch(final PronunciationAudioOwner subject,
                                                                   final @Nullable String reading) {
-        if (reading == null) {
-            return null;
-        }
-
-        final List<PronunciationAudio> shuffled = shuffle(subject.getParsedPronunciationAudios());
-        if (shuffled.isEmpty()) {
-            return null;
-        }
-
-        final VoicePreference voicePreference = GlobalSettings.Audio.getVoicePreference();
-        final boolean malePreferred = voicePreference == MALE || voicePreference == ALTERNATE && !lastWasMale;
-        final boolean femalePreferred = voicePreference == FEMALE || voicePreference == ALTERNATE && lastWasMale;
-
-        final int level = subject.getLevel();
-        final Iterable<String> locationValues = AUDIO_STORAGE.getLocationValues();
-
-        final Comparator<PronunciationAudio> comparator = (o1, o2) -> {
-            if (o1 == o2) {
-                return 0;
-            }
-            if (AUDIO_STORAGE.hasAudioFileFor(level, o1, locationValues) && !AUDIO_STORAGE.hasAudioFileFor(level, o2, locationValues)) {
-                return -1;
-            }
-            if (AUDIO_STORAGE.hasAudioFileFor(level, o2, locationValues) && !AUDIO_STORAGE.hasAudioFileFor(level, o1, locationValues)) {
-                return 1;
-            }
-            if (isEqual(o1.getMetadata().getPronunciation(), reading) && !isEqual(o2.getMetadata().getPronunciation(), reading)) {
-                return -1;
-            }
-            if (isEqual(o2.getMetadata().getPronunciation(), reading) && !isEqual(o1.getMetadata().getPronunciation(), reading)) {
-                return 1;
-            }
-            if (malePreferred) {
-                if (o1.getMetadata().isMale() && !o2.getMetadata().isMale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isMale() && !o1.getMetadata().isMale()) {
-                    return 1;
-                }
-            }
-            if (femalePreferred) {
-                if (o1.getMetadata().isFemale() && !o2.getMetadata().isFemale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isFemale() && !o1.getMetadata().isFemale()) {
-                    return 1;
-                }
-            }
-            return 0;
-        };
-
-        Collections.sort(shuffled, comparator);
-
-        final PronunciationAudio audio = shuffled.get(0);
-        if (isEqual(audio.getMetadata().getPronunciation(), reading)) {
-            return AUDIO_STORAGE.getExistingFileForAudio(level, audio, locationValues);
-        }
-
-        return null;
+        return AUDIO_SELECTOR.getOneAudioFileMustMatch(subject, reading);
     }
 
     /**
@@ -236,8 +122,7 @@ public final class AudioUtil {
      * @return the file, or null if none exists
      */
     public static @Nullable GenderedFile getOneAudioFileShouldMatch(final Subject subject, final @Nullable String reading) {
-        final @Nullable GenderedFile file = getOneAudioFileMustMatch(subject, reading);
-        return file == null ? getOneAudioFile(subject) : file;
+        return AUDIO_SELECTOR.getOneAudioFileShouldMatch(subject, reading);
     }
 
     /**
@@ -466,7 +351,7 @@ public final class AudioUtil {
 
             final MediaPlayer player = new MediaPlayer();
             savedMediaPlayer = player;
-            lastWasMale = audioFile.isMale();
+            AUDIO_SELECTOR.setLastWasMale(audioFile.isMale());
 
             player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
             player.setOnCompletionListener(mp -> releasePlayer(mp, audioManager));
@@ -498,7 +383,7 @@ public final class AudioUtil {
 
             final MediaPlayer player = new MediaPlayer();
             savedMediaPlayer = player;
-            lastWasMale = audio.getMetadata().isMale();
+            AUDIO_SELECTOR.setLastWasMale(audio.getMetadata().isMale());
 
             player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
             player.setOnCompletionListener(mp -> releasePlayer(mp, audioManager));
@@ -525,52 +410,8 @@ public final class AudioUtil {
      * @param subject the subject
      * @param lastMatchedAnswer the reading to match if possible
      */
-    public static @Nullable PronunciationAudio getStreamingAudio(Subject subject, @Nullable String lastMatchedAnswer) {
-        // Shuffle so pronunciation gender is random unless preferences alter it via the comparator.
-        List<PronunciationAudio> audioList = shuffle(subject.getParsedPronunciationAudios());
-        if (audioList.isEmpty()) {
-            return null;
-        }
-
-        final VoicePreference voicePreference = GlobalSettings.Audio.getVoicePreference();
-        // Prefer male if that is the preference or if the user chose alternate then prefer it if the last pronunciation was female.
-        final boolean malePreferred = voicePreference == MALE || voicePreference == ALTERNATE && !lastWasMale;
-        // Same as above for female preference. Same functionality for alternating.
-        final boolean femalePreferred = voicePreference == FEMALE || voicePreference == ALTERNATE && lastWasMale;
-
-        // Sorted based on pronunciation matching last matched answer and gender, taking into account their preference.
-        final Comparator<PronunciationAudio> comparator = (o1, o2) -> {
-            if (o1 == o2) {
-                return 0;
-            }
-            if (isEqual(o1.getMetadata().getPronunciation(), lastMatchedAnswer) && !isEqual(o2.getMetadata().getPronunciation(), lastMatchedAnswer)) {
-                return -1;
-            }
-            if (isEqual(o2.getMetadata().getPronunciation(), lastMatchedAnswer) && !isEqual(o1.getMetadata().getPronunciation(), lastMatchedAnswer)) {
-                return 1;
-            }
-            if (malePreferred) {
-                if (o1.getMetadata().isMale() && !o2.getMetadata().isMale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isMale() && !o1.getMetadata().isMale()) {
-                    return 1;
-                }
-            }
-            if (femalePreferred) {
-                if (o1.getMetadata().isFemale() && !o2.getMetadata().isFemale()) {
-                    return -1;
-                }
-                if (o2.getMetadata().isFemale() && !o1.getMetadata().isFemale()) {
-                    return 1;
-                }
-            }
-            return 0;
-        };
-
-        Collections.sort(audioList, comparator);
-
-        return audioList.get(0); // First audio should align with preferences.
+    public static @Nullable PronunciationAudio getStreamingAudio(final Subject subject, final @Nullable String lastMatchedAnswer) {
+        return AUDIO_SELECTOR.getStreamingAudio(subject, lastMatchedAnswer);
     }
 
     /**
@@ -811,22 +652,6 @@ public final class AudioUtil {
         return new File(destinationParent, file.getName());
     }
 
-    /**
-    * Simple check specifically for kana only vocab audio file checking
-    * @param subject the subject to check
-    */
-    public static boolean hasAudio(final Subject subject) {
-        final Iterable<String> locationValues = AUDIO_STORAGE.getLocationValues(); // Assuming you have this method as it's used elsewhere
-        final List<PronunciationAudio> audios = subject.getParsedPronunciationAudios(); // Get all audio files related to the subject
-
-        for (PronunciationAudio audio : audios) {
-            if (AUDIO_STORAGE.hasAudioFileFor(subject.getLevel(), audio, locationValues)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
     /**
      * Move a misplaced audio file to its preferred location.
      *
