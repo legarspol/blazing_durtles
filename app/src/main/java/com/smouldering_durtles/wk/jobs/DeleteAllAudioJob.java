@@ -18,7 +18,7 @@ package com.smouldering_durtles.wk.jobs;
 
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.livedata.LiveAudioDownloadStatus;
-import com.smouldering_durtles.wk.util.AudioUtil;
+import com.smouldering_durtles.wk.util.AudioStorage;
 
 /**
  * Job to delete all downloaded audio files.
@@ -35,7 +35,7 @@ public final class DeleteAllAudioJob extends Job {
 
     @Override
     public void runLocal() {
-        AudioUtil.deleteAllAudio();
+        new AudioStorage().deleteAllAudio();
         WkApplication.getDatabase().audioDownloadStatusDao().deleteAll();
         LiveAudioDownloadStatus.getInstance().update();
         houseKeeping();

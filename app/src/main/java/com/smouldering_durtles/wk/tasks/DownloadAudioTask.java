@@ -22,6 +22,7 @@ import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.dao.SubjectDao;
 import com.smouldering_durtles.wk.db.model.Subject;
 import com.smouldering_durtles.wk.db.model.TaskDefinition;
+import com.smouldering_durtles.wk.util.AudioStorage;
 import com.smouldering_durtles.wk.util.AudioUtil;
 
 import java.io.File;
@@ -75,20 +76,21 @@ public final class DownloadAudioTask extends ApiTask {
 
         if (subject != null) {
             boolean scan = false;
-            final Iterable<String> locationValues = AudioUtil.getLocationValues();
+            final AudioStorage audioStorage = new AudioStorage();
+            final Iterable<String> locationValues = audioStorage.getLocationValues();
 
             for (final PronunciationAudio audio: subject.getParsedPronunciationAudios()) {
                 if (isEqual(audio.getContentType(), "audio/ogg")) {
                     continue;
                 }
-                if (AudioUtil.hasAudioFileFor(subject.getLevel(), audio, locationValues)) {
+                if (audioStorage.hasAudioFileFor(subject.getLevel(), audio, locationValues)) {
                     continue;
                 }
-                final @Nullable File output = AudioUtil.getNewFileForAudio(subject.getLevel(), audio);
+                final @Nullable File output = audioStorage.getNewFileForAudio(subject.getLevel(), audio);
                 if (output == null) {
                     continue;
                 }
-                final @Nullable File tempFile = AudioUtil.getTempFile(output);
+                final @Nullable File tempFile = audioStorage.getTempFile(output);
                 if (tempFile == null) {
                     continue;
                 }
@@ -102,14 +104,14 @@ public final class DownloadAudioTask extends ApiTask {
                 if (!isEqual(audio.getContentType(), "audio/ogg")) {
                     continue;
                 }
-                if (AudioUtil.hasAudioFileFor(subject.getLevel(), audio, locationValues)) {
+                if (audioStorage.hasAudioFileFor(subject.getLevel(), audio, locationValues)) {
                     continue;
                 }
-                final @Nullable File output = AudioUtil.getNewFileForAudio(subject.getLevel(), audio);
+                final @Nullable File output = audioStorage.getNewFileForAudio(subject.getLevel(), audio);
                 if (output == null) {
                     continue;
                 }
-                final @Nullable File tempFile = AudioUtil.getTempFile(output);
+                final @Nullable File tempFile = audioStorage.getTempFile(output);
                 if (tempFile == null) {
                     continue;
                 }
