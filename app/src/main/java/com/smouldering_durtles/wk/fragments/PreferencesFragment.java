@@ -59,7 +59,7 @@ import com.smouldering_durtles.wk.components.TaggedUrlPreferenceDialogFragment;
 import com.smouldering_durtles.wk.jobs.ResetDatabaseJob;
 import com.smouldering_durtles.wk.livedata.LiveApiState;
 import com.smouldering_durtles.wk.services.JobRunnerService;
-import com.smouldering_durtles.wk.util.AudioUtil;
+import com.smouldering_durtles.wk.util.AudioStorage;
 import com.smouldering_durtles.wk.util.DbLogger;
 import com.smouldering_durtles.wk.util.ThemeUtil;
 
@@ -223,8 +223,9 @@ public final class PreferencesFragment extends PreferenceFragmentCompat {
 
         final @Nullable ListPreference audioLocation = findPreference("audio_location");
         if (audioLocation != null) {
-            final List<String> locationValues = AudioUtil.getLocationValues();
-            final List<String> locations = AudioUtil.getLocations(locationValues);
+            final AudioStorage audioStorage = new AudioStorage();
+            final List<String> locationValues = audioStorage.getLocationValues();
+            final List<String> locations = audioStorage.getLocations(locationValues);
             audioLocation.setEntries(locations.toArray(new String[] {}));
             audioLocation.setEntryValues(locationValues.toArray(new String[] {}));
             audioLocation.setVisible(true);

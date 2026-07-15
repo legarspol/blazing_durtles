@@ -20,6 +20,7 @@ import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.Subject;
+import com.smouldering_durtles.wk.util.AudioStorage;
 import com.smouldering_durtles.wk.util.AudioUtil;
 
 /**
@@ -44,7 +45,7 @@ public final class StartAudioDownloadJob extends Job {
             final int firstLevel = Integer.parseInt(args[0]);
             final int lastLevel = Integer.parseInt(args[1]);
 
-            final Iterable<String> locationValues = AudioUtil.getLocationValues();
+            final Iterable<String> locationValues = new AudioStorage().getLocationValues();
 
             for (final Subject subject: db.subjectCollectionsDao().getByLevelRange(firstLevel, lastLevel)) {
                 final int status = AudioUtil.findAudioDownloadStatus(subject.getLevel(), subject.getParsedPronunciationAudios(), locationValues);
