@@ -1,0 +1,83 @@
+# Gradle Version Catalog — single source of truth for dependency & plugin versions.
+# Auto-detected by Gradle from gradle/libs.versions.toml; referenced as libs.* in build files.
+# See docs/GRADLE_REVIEW.md for the per-dependency disposition (keep / bump / remove) that
+# tracks the migration plan — this file only records *current* pins, verbatim.
+
+[versions]
+# Build toolchain
+agp = "9.2.1"
+
+# AndroidX — UI / lifecycle (legacy View stack, slated for Compose in Phase 4)
+activity = "1.6.0"
+fragment = "1.3.6"
+appcompat = "1.6.1"
+constraintlayout = "2.1.4"
+recyclerview = "1.3.2"
+preference = "1.2.1"
+legacySupportCoreUtils = "1.0.0"
+annotation = "1.7.1"
+
+# AndroidX — platform / data
+room = "2.6.1"
+work = "2.9.0"
+securityCrypto = "1.1.0-alpha06"
+
+# Third-party (several are migration targets — see review doc)
+desugarJdkLibs = "2.0.4"
+jacksonDatabind = "2.15.0"
+gson = "2.10.1"
+okhttp = "5.0.0-alpha.6"
+jsoup = "1.16.1"
+lottie = "5.0.3"
+pikolo = "2.0.2"
+glide = "4.12.0"
+glideTransformations = "4.3.0"
+
+# Test
+junit = "4.13.2"
+androidxTestRunner = "1.5.2"
+androidxTestCore = "1.5.0"
+androidxTestRules = "1.5.0"
+androidxTestExtJunit = "1.1.5"
+
+[libraries]
+# AndroidX — UI / lifecycle
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+androidx-preference = { module = "androidx.preference:preference", version.ref = "preference" }
+androidx-legacy-support-core-utils = { module = "androidx.legacy:legacy-support-core-utils", version.ref = "legacySupportCoreUtils" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+
+# AndroidX — platform / data
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+
+# Third-party
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+pikolo = { module = "com.github.madrapps:pikolo", version.ref = "pikolo" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+glide-transformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
+
+# Test
+junit = { module = "junit:junit", version.ref = "junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
