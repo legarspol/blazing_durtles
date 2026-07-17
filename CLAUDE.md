@@ -13,7 +13,7 @@ Migration tickets follow `docs/TICKET_TEMPLATE.md` (Context / Files in scope / A
 | Concern | Choice |
 |---|---|
 | Language | Kotlin (Java migrated incrementally; Java/Kotlin interop must keep building) |
-| DI | **Hilt** (allowed everywhere, incl. domain/data) |
+| DI | **Hilt** in `:app`. `:core` carries plain constructor `@Inject` (`javax.inject`) that the `:app` Hilt graph wires — no Hilt/Dagger processor in `:core` (Hilt is Android-only) |
 | UI | **Jetpack Compose** (Android idioms first) |
 | Persistence | **Room** (Kotlin + KSP). No migrations — fresh install, v68 schema only |
 | Networking | **Ktor client + kotlinx.serialization** (replaces OkHttp + Jackson) |
@@ -30,12 +30,15 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 
 ## Module layout
 
-- **Single `:app` module.** No `commonMain`/`androidMain` source sets yet; the KMP split is deferred to future iOS/desktop work.
+- **Two modules: `:core` + `:app`.** No `commonMain`/`androidMain` source sets yet; the KMP *platform* split is still deferred, but `:core` is the seam it will extract through.
+  - **`:core`** — pure Kotlin/JVM, **no Android SDK on its classpath**. Holds the `…/domain` layer. Framework-freedom is *compiler-enforced* here: `android.*`, `Context`, `View`, and resources simply won't resolve. DI is plain constructor `@Inject` (`javax.inject`), wired by `:app`'s Hilt graph — no Hilt/Dagger processor in `:core`.
+  - **`:app`** — the Android module, depends on `:core`. Holds `…/ui` (Compose + ViewModels), `…/platform` (widget, notifications, alarms, WorkManager, `Context`), the still-legacy Java, and — for now — the `…/data` package.
 - Package convention (base `com.smouldering_durtles.wk`):
-  - `…/domain`, `…/data` — **Android-framework-free**: no `Context`, `View`, resources, or `android.*` framework imports. Behind interfaces for anything platform-specific. Hilt annotations are OK here.
+  - `…/domain` (in `:core`) — **Android-framework-free, compiler-enforced**. Platform needs sit behind interfaces implemented in `:app`.
+  - `…/data` (in `:app` for now) — avoids the Android *framework* by convention; promotion to its own module is deferred until its Room/Ktor shape settles.
   - `…/ui` — Jetpack Compose screens + ViewModels.
   - `…/platform` — everything Android-specific: widget, notifications, alarms, WorkManager, `Context`.
-- Build config: `compileSdk 35`, `minSdk 21`, `targetSdk 35`, namespace `com.smouldering_durtles.wk`.
+- Build config (`:app`): `compileSdk 35`, `minSdk 21`, `targetSdk 35`, namespace `com.smouldering_durtles.wk`.
 
 ## Code conventions
 
@@ -58,4 +61,4 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 
 ## Phase order (see `docs/MIGRATION_PLAN.md`)
 
-0 Foundation (toolchain) → 1 Delete dead code → 2 Data layer → 3 Domain layer → 4 UI (Compose, mostly human). **Burn/resurrect + web scraping are deferred** (lowest priority; kept as legacy Java, instrumented, decided later).
+0 Foundation (toolchain + stand up `:core`) → 1 Delete dead code → 2 Data layer → 3 Domain layer → 4 UI (Compose, mostly human). **Burn/resurrect + web scraping are deferred** (lowest priority; kept as legacy Java, instrumented, decided later).

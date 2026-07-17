@@ -7,7 +7,7 @@ Smouldering Durtles is a ~64k-LOC, 100% Java, single-module Android WaniKani cli
 ## Non-goals
 
 - **No internationalization.** The WaniKani API is English-only; the app stays English-only. No locale resources, no translation infrastructure. (This is *why* strings can be plain Kotlin — see below.)
-- **No iOS/desktop target yet.** We build and ship **Android only**. KMP-readiness is a *secondary* benefit achieved by keeping domain/data free of the Android *framework* (no `Context`/`View`), not by standing up `commonMain` source sets or a second module now. The real KMP extraction happens when iOS/desktop work begins, and will include a de-Hilt pass (see DI).
+- **No iOS/desktop target yet.** We build and ship **Android only**. KMP-readiness is a *secondary* benefit. We *do* extract the domain layer into a plain-Kotlin **`:core` module now** — so framework-freedom is compiler-enforced and the KMP seam already exists — but we do **not** stand up `commonMain`/`androidMain` source sets or target a second platform. The real KMP extraction happens when iOS/desktop work begins: it turns `:core` into a KMP module and swaps its DI wiring (see DI).
 - **No big-bang rewrite.** Migration is incremental; the Android app stays buildable (Java/Kotlin interop) throughout.
 
 > The only intentional *additions* in this migration are **observability** (crash reporting + telemetry) — not user-facing features. Existing behavior is otherwise held at parity.
@@ -16,9 +16,9 @@ Smouldering Durtles is a ~64k-LOC, 100% Java, single-module Android WaniKani cli
 
 | Concern | Decision | Notes |
 |---|---|---|
-| Module layout | **Single `:app` Android module** | KMP split deferred; data/domain isolated by package, not source set. |
+| Module layout | **Two modules: `:core` (pure-Kotlin domain) + `:app` (Android)** | Domain framework-freedom compiler-enforced; `commonMain`/second platform still deferred. Data stays a package in `:app` until its Room/Ktor shape settles. |
 | Language | Java → **Kotlin**, incrementally | Java/Kotlin interop keeps the app building mid-migration. |
-| DI | **Hilt everywhere** (incl. domain/data) | Simplest for Android-first. Trade-off: Hilt is Android-only, so domain classes carrying `@Inject` need a de-Hilt pass at KMP-extraction time — accepted for velocity now. |
+| DI | **Hilt in `:app`; plain `@Inject` (`javax.inject`) in `:core`** | `:core` classes carry constructor `@Inject` annotations that the `:app` Hilt graph wires — no Hilt/Dagger processor in `:core` (Hilt is Android-only). KMP extraction later swaps the wiring for a KMP DI; the `@Inject` annotations largely carry over. |
 | UI | **Jetpack Compose**, Android idioms first | Old Activities/Fragments/Views/adapters/proxy are DELETE, rebuilt screen-by-screen. |
 | Persistence | **Room** (Kotlin + KSP) | No migrations — fresh install recreates the current v68 schema only. Room is KMP-capable, so no future DB swap. |
 | Networking | **Ktor client + kotlinx.serialization** | Replaces OkHttp + Jackson. (Retrofit+Moshi is the more conventional Android-only pick; Ktor keeps the KMP path open and runs fine on Android via the OkHttp engine.) |
@@ -30,13 +30,13 @@ Smouldering Durtles is a ~64k-LOC, 100% Java, single-module Android WaniKani cli
 | Crash reporting | **Firebase Crashlytics** | Backs the crash-fast policy. |
 | Telemetry | **Firebase Analytics** | Feature-usage instrumentation (pairs with Crashlytics). Drives the burn/resurrect keep/drop decision. Requires a privacy-policy update + opt-out. |
 
-## Architecture: single module, clean packages
+## Architecture: two modules, clean packages
 
-One `:app` module, internally partitioned by concern:
+Two Gradle modules — **`:core`** (pure Kotlin/JVM, no Android SDK) and **`:app`** (Android, depends on `:core`):
 
-- `…/domain` and `…/data` packages avoid the Android **framework** (`Context`, `View`, resources); platform needs sit behind interfaces. Prefer `kotlinx-datetime` over `java.time`. Hilt annotations are allowed here (Android-first), with the understanding that KMP extraction later strips them. This keeps the layers unit-testable now and portable-ish later.
-- `…/ui` (Compose) and `…/platform` packages hold everything Android-specific: widget, notifications, alarms, background workers, `Context`.
-- **god-objects → injected services.** The static singletons (`WkApplication.getInstance()`, `GlobalSettings` statics, `WebClient.getInstance()`, the `Session` singleton) become Hilt-injected dependencies — the precondition for pulling domain out of the framework.
+- **`:core`** holds the `…/domain` layer. Framework-freedom is **compiler-enforced**: with no Android SDK on the classpath, `Context`/`View`/resources/`android.*` won't resolve. Prefer `kotlinx-datetime` over `java.time`. Platform needs sit behind interfaces implemented in `:app`. DI is plain constructor `@Inject` (`javax.inject`), wired by the `:app` Hilt graph — no Hilt/Dagger processor here. `:core` is the seam a later KMP split extracts through, so that split is mostly mechanical.
+- **`:app`** holds everything Android: `…/ui` (Compose + ViewModels), `…/platform` (widget, notifications, alarms, background workers, `Context`), the still-legacy Java, and — for now — the `…/data` package (Room/Ktor). Data keeps framework-freedom by *convention*; promoting it to its own module is deferred until its shape settles.
+- **god-objects → injected services.** The static singletons (`WkApplication.getInstance()`, `GlobalSettings` statics, `WebClient.getInstance()`, the `Session` singleton) become injected dependencies — the precondition for pulling domain out of the framework and into `:core`.
 
 ## Decomposition as a general rule (smaller classes → smaller tickets)
 
@@ -78,7 +78,7 @@ The app has **no JVM unit tests** today (only instrumented migration tests, bein
 Phase numbering follows the agreed order; **Phase 0** is unavoidable foundation preceding "delete dead code."
 
 ### Phase 0 — Foundation
-Stand up the toolchain in the single module without moving logic: add Kotlin, Hilt, Compose, Coroutines, DataStore, Ktor + kotlinx.serialization, **Crashlytics + Firebase Analytics**; migrate Room to Kotlin+KSP; convert `annotationProcessor` (Room/Glide) usage to KSP. Verify a green build with Java + Kotlin coexisting and one trivial Kotlin+Hilt+Compose+analytics path working end-to-end.
+Stand up the toolchain without moving logic: add Kotlin, Hilt, Compose, Coroutines, DataStore, Ktor + kotlinx.serialization, **Crashlytics + Firebase Analytics**; migrate Room to Kotlin+KSP; convert `annotationProcessor` (Room/Glide) usage to KSP. **Create the empty `:core` (pure-Kotlin) module and wire `:app` → `:core`** so later domain tickets have a home. Verify a green build with Java + Kotlin coexisting and one trivial Kotlin+Hilt+Compose+analytics path working end-to-end.
 
 ### Phase 1 — Delete dead code
 Remove genuinely unused classes; delete the **40 Room migrations + `DatabaseMigrationTest`** (fresh install → recreate v68 schema only); **delete `welcome.gif`, the `AboutActivity` GIF display, Glide, and glide-transformations**; trim dead defensive scaffolding where safe. Verify: builds, runs, review/lesson smoke path intact.
@@ -87,7 +87,7 @@ Remove genuinely unused classes; delete the **40 Room migrations + `DatabaseMigr
 Port, tests-first: **DTOs** (Jackson→kotlinx.serialization, incl. custom `PitchInfo`/`WaniKaniApiDate` serializers), **Room entities + DAOs** (Java→Kotlin, suspend/Flow), **REST networking** (OkHttp→Ktor), **preferences storage** (SharedPreferences→DataStore, one-time read-through migration). **DECOMPOSE `SubjectSyncDao`** (`docs/AUDIT.md` §7): lean `@Dao` (its 12 real `@Query`s) + a `SubjectSyncService` for mapping/JSON/sync/availability. Apply the general decomposition rule to every class touched here. *(Burn/resurrect scraping is explicitly out of this phase — see Deferred.)*
 
 ### Phase 3 — Domain layer → Kotlin
-Port, tests-first: `model/*`, `enums/*`, domain `util/*`. **DECOMPOSE** the god-classes (`docs/AUDIT.md` §7): `Subject` (138 methods → thin entity + pure value objects, media/HTML evicted); `Session` (singleton → injected state machine + `QuestionSelector`, UI reach-through dropped); `GlobalSettings` (192 accessors → ~16 per-feature settings objects over DataStore); **`ObjectSupport` DISSOLVES** (helpers→stdlib, `safe()`→deleted, `runAsync`→coroutine facade). Split every other class along its responsibilities as it's ported. Replace the schedulers with coroutines; `LiveData`→`StateFlow`; stand up the **foreground initial-sync worker** and keep periodic sync on WorkManager. Introduce **ViewModels** exposing `StateFlow` for Phase 4.
+Port, tests-first (**into `:core`**): `model/*`, `enums/*`, domain `util/*`. **DECOMPOSE** the god-classes (`docs/AUDIT.md` §7): `Subject` (138 methods → thin entity + pure value objects, media/HTML evicted); `Session` (singleton → injected state machine + `QuestionSelector`, UI reach-through dropped); `GlobalSettings` (192 accessors → ~16 per-feature settings objects over DataStore); **`ObjectSupport` DISSOLVES** (helpers→stdlib, `safe()`→deleted, `runAsync`→coroutine facade). Split every other class along its responsibilities as it's ported. Replace the schedulers with coroutines; `LiveData`→`StateFlow`; stand up the **foreground initial-sync worker** and keep periodic sync on WorkManager. Introduce **ViewModels** exposing `StateFlow` for Phase 4.
 
 ### Phase 4 — UI screens (mostly a human task)
 Rebuild screens in **Jetpack Compose**, one at a time, each backed by a Phase-3 ViewModel; strings from the Kotlin string objects. Delete the matching old Activity/Fragment/View/adapter/proxy as each screen lands — this is where the 384 UI `safe()` sites disappear. Keep Android-only surfaces (`SessionWidgetProvider`, notifications, alarms) in `platform`, updated to the new domain. **Burn/resurrect screens come last** (see Deferred).
@@ -112,5 +112,5 @@ OkHttp→Ktor · Jackson/Gson→kotlinx.serialization · SharedPreferences/andro
 - **JSON swap** is now the single most-exposed change (DB is a like-for-like Room port) — DTO round-trip tests are mandatory before deleting Jackson.
 - **Settings interim:** old preference screens (Phase-4 UI) still read settings while storage moves to DataStore in Phase 2/3 — bridge via the injected settings services until each screen's Phase-4 rebuild.
 - **Worker-boundary `safe()`** (`services`/`tasks`/`jobs`) needs case-by-case judgment during the async rewrite — legitimate "report, don't crash the process" boundaries.
-- **Hilt-in-domain** means the eventual KMP extraction includes a de-Hilt pass on domain/data — a known, accepted cost of the Android-first choice.
+- **DI at the `:core` boundary:** `:core` uses plain `@Inject` (`javax.inject`) wired by `:app`'s Hilt graph, so there's no Hilt to strip from domain later; the eventual KMP extraction only swaps that wiring for a KMP DI, which the constructor annotations largely survive. Data, still a package in `:app`, keeps framework-freedom by convention until it earns its own module.
 - **Analytics/privacy:** shipping Firebase Analytics requires the `PRIVACY-POLICY.md` update + opt-out to land *with* the analytics code, not after.
