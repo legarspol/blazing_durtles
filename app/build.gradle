@@ -1,5 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
+    id 'com.google.devtools.ksp'
+    id 'com.google.dagger.hilt.android'
 }
 
 android {
@@ -50,9 +54,16 @@ android {
     }
     compileOptions {
         coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
+
     buildFeatures {
         buildConfig true
         resValues true
@@ -92,6 +103,8 @@ dependencies {
     annotationProcessor libs.glide.compiler
     implementation libs.glide.transformations
     implementation libs.gson
+    implementation libs.hilt.android
+    ksp libs.hilt.compiler
 
     testImplementation libs.junit
 

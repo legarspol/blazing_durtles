@@ -74,7 +74,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Global application object to handle some global concerns.
  */
-public final class WkApplication extends Application {
+public class WkApplication extends Application {
     private static @Nullable WkApplication instance = null;
     private static @Nullable AppDatabase database = null;
     private static @Nullable EncryptedPreferenceDataStore encryptedPreferenceDataStore = null;
@@ -256,11 +256,6 @@ public final class WkApplication extends Application {
             final AppDatabase db = requireNonNull(database);
 
             db.propertiesDao().preload();
-
-            safe(() -> {
-                db.propertiesDao().deleteProperty("migration_done_audio1");
-                db.propertiesDao().deleteProperty("self_study_configuration");
-            });
 
             safe(() -> {
                 if (!db.propertiesDao().getMigrationDoneAnkiSplit()) {
