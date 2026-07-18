@@ -4,7 +4,7 @@ Companion to the version-catalog conversion. This pass did **two** things and ke
 strictly separate:
 
 1. **Applied now (behavior-preserving):** extracted every version into
-   `gradle/libs.versions.toml`, moved `app/build.gradle` and the root `build.gradle` to the
+   `gradle/libs.versions.toml`, moved `app/build.gradle.kts` and the root `build.gradle.kts` to the
    catalog + modern `plugins {}` DSL, and dropped genuinely dead lines. No dependency was
    added, removed, or version-bumped. `./gradlew :app:dependencies` resolves identically.
 2. **Recorded here (NOT applied):** every "should this go or change" verdict. These are
@@ -20,14 +20,14 @@ Phase references point at `docs/MIGRATION_PLAN.md`.
 
 ## What the conversion changed (mechanical)
 
-- **New:** `gradle/libs.versions.toml` — auto-detected by Gradle, no `settings.gradle` edit needed.
-- **`app/build.gradle`:** `apply plugin:` → `plugins { alias(...) }`; `minSdkVersion`/`targetSdkVersion` → `minSdk`/`targetSdk`; `namespace`+`compileSdk` hoisted to the top of `android {}`; all coordinates → `libs.*`. Dropped `implementation fileTree(include: ['*.jar'], dir: 'libs')` — there is no `app/libs/` dir, so it was a no-op.
-- **Root `build.gradle`:** plugin versions → catalog aliases; `rootProject.buildDir` (deprecated in Gradle 9) → `rootProject.layout.buildDirectory`.
+- **New:** `gradle/libs.versions.toml` — auto-detected by Gradle, no `settings.gradle.kts` edit needed.
+- **`app/build.gradle.kts`:** `apply plugin:` → `plugins { alias(...) }`; `minSdkVersion`/`targetSdkVersion` → `minSdk`/`targetSdk`; `namespace`+`compileSdk` hoisted to the top of `android {}`; all coordinates → `libs.*`. Dropped `implementation fileTree(include: ['*.jar'], dir: 'libs')` — there is no `app/libs/` dir, so it was a no-op.
+- **Root `build.gradle.kts`:** plugin versions → catalog aliases; `rootProject.buildDir` (deprecated in Gradle 9) → `rootProject.layout.buildDirectory`.
 - **Not done:** Groovy → Kotlin DSL (`.gradle.kts`). Higher-risk, unrelated to the catalog; offered as a follow-up.
 
 ---
 
-## `app/build.gradle` — line by line
+## `app/build.gradle.kts` — line by line
 
 ### Android config
 
@@ -86,7 +86,7 @@ Phase references point at `docs/MIGRATION_PLAN.md`.
 
 ---
 
-## Root `build.gradle`
+## Root `build.gradle.kts`
 
 | Item | Verdict | Note |
 |---|---|---|
