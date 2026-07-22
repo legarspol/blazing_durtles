@@ -82,6 +82,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core"))
+
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.fragment.ktx)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
