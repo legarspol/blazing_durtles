@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "smouldering-durtles"
 include(":app")
+include(":core")
