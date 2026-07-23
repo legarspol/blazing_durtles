@@ -47,11 +47,6 @@ android {
             buildConfigField("String", "FILEPROVIDER_AUTHORITY", "\"com.blazingdurtles.android.debug.fileprovider\"")
         }
     }
-    sourceSets {
-        getByName("androidTest") {
-            assets.srcDirs("$projectDir/schemas")
-        }
-    }
     testOptions {
         reportDir = "$rootDir/test-reports"
         resultsDir = "$rootDir/test-results"
@@ -129,7 +124,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.annotation)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.room.testing)
 }
 
 tasks.withType<JavaCompile>().configureEach {
