@@ -71,7 +71,8 @@ public final class Converters {
      * Convert a String to an ApiTask subclass.
      *
      * @param value the canonical name or null
-     * @return the class instance or null
+     * @return the class instance or null if value is null
+     * @throws RuntimeException wrapping a ClassNotFoundException if value names a class that cannot be resolved
      */
     @TypeConverter
     public static @Nullable Class<? extends ApiTask> stringToTaskClass(final @Nullable String value) {
@@ -81,7 +82,7 @@ public final class Converters {
         try {
             return Class.forName(value).asSubclass(ApiTask.class);
         } catch (final ClassNotFoundException e) {
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
