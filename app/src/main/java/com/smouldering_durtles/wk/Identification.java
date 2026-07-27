@@ -34,11 +34,6 @@ public final class Identification {
     public static final String APP_URI_SCHEME = "blazing-durtles";
 
     /**
-     * The WaniKani username of the author.
-     */
-    public static final String AUTHOR_USERNAME = "joeni";
-
-    /**
      * Support URL for the app.
      */
     public static final String SUPPORT_URL = "https://raw.githubusercontent.com/legarspol/blazing_durtles/refs/heads/main/PRIVACY-POLICY.md";
@@ -46,7 +41,7 @@ public final class Identification {
     /**
      * Store URL for the app.
      */
-    public static final String STORE_URL = "https://raw.githubusercontent.com/legarspol/blazing_durtles/refs/heads/main/PRIVACY-POLICY.md";
+    public static final String STORE_URL = "https://play.google.com/store/apps/details?id=com.blazingdurtles.android";
 
     private Identification() {
         //

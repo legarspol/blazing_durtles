@@ -17,9 +17,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <!-- Settings, should always be in the overflow -->
-    <item android:id="@+id/action_settings"
-        android:title="Settings"
-        app:showAsAction="never"/>
     <item android:id="@+id/action_search"
         app:actionViewClass="android.widget.SearchView"
         android:title="Search"
@@ -72,4 +69,7 @@
         android:title="Test"
         app:showAsAction="never"
         android:visibility="gone"/>
+    <item android:id="@+id/action_settings"
+        android:title="Settings"
+        app:showAsAction="never"/>
 </menu>
