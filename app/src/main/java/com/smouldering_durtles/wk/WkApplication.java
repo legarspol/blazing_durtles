@@ -32,6 +32,7 @@ import androidx.core.net.ConnectivityManagerCompat;
 
 import com.smouldering_durtles.wk.components.EncryptedPreferenceDataStore;
 import com.smouldering_durtles.wk.db.AppDatabase;
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.enums.ActiveTheme;
 import com.smouldering_durtles.wk.enums.NotificationPriority;
 import com.smouldering_durtles.wk.enums.OnlineStatus;
@@ -193,6 +194,7 @@ public class WkApplication extends Application {
 
     private void onCreateLocal() {
         initialize(this);
+        Diagnostics.applyConsentState();
         new Task().execute();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

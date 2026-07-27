@@ -6,6 +6,17 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.compose.compiler)
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+}
+
+// Firebase config: real values are kept out of git (app/google-services.json is
+// gitignored). So the project still builds on a fresh checkout, fall back to the
+// committed placeholder when no real config is present. Drop a real
+// app/google-services.json in to send diagnostics to an actual Firebase project.
+val googleServicesJson = file("google-services.json")
+if (!googleServicesJson.exists()) {
+    file("google-services-placeholder.json").copyTo(googleServicesJson)
 }
 
 android {
@@ -14,7 +25,8 @@ android {
 
     defaultConfig {
         applicationId = "com.blazingdurtles.android"
-        minSdk = 21
+        // Firebase (BOM 33+) requires API 23; every Firebase SDK declares minSdk 23.
+        minSdk = 23
         targetSdk = 35
         versionCode = 85
         versionName = "1.2.4"
@@ -34,17 +46,37 @@ android {
         release {
             isMinifyEnabled = false
             resValue("string", "fileprovider_authority", "com.blazingdurtles.android.fileprovider")
-            resValue("string", "searchprovider_authority", "com.blazingdurtles.android.db.SubjectContentProvider")
+            resValue(
+                "string",
+                "searchprovider_authority",
+                "com.blazingdurtles.android.db.SubjectContentProvider"
+            )
             resValue("string", "applabel", "@string/label")
-            buildConfigField("String", "FILEPROVIDER_AUTHORITY", "\"com.blazingdurtles.android.fileprovider\"")
+            buildConfigField(
+                "String",
+                "FILEPROVIDER_AUTHORITY",
+                "\"com.blazingdurtles.android.fileprovider\""
+            )
             signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"
-            resValue("string", "fileprovider_authority", "com.blazingdurtles.android.debug.fileprovider")
-            resValue("string", "searchprovider_authority", "com.blazingdurtles.android.debug.db.SubjectContentProvider")
+            resValue(
+                "string",
+                "fileprovider_authority",
+                "com.blazingdurtles.android.debug.fileprovider"
+            )
+            resValue(
+                "string",
+                "searchprovider_authority",
+                "com.blazingdurtles.android.debug.db.SubjectContentProvider"
+            )
             resValue("string", "applabel", "@string/labelDebug")
-            buildConfigField("String", "FILEPROVIDER_AUTHORITY", "\"com.blazingdurtles.android.debug.fileprovider\"")
+            buildConfigField(
+                "String",
+                "FILEPROVIDER_AUTHORITY",
+                "\"com.blazingdurtles.android.debug.fileprovider\""
+            )
         }
     }
     testOptions {
@@ -116,6 +148,10 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+    implementation ("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-crashlytics")
 
     testImplementation(libs.junit)
 

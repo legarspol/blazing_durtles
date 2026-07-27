@@ -1253,6 +1253,24 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:key="diagnostics_privacy" app:title="Diagnostics and privacy">
+
+        <SwitchPreferenceCompat
+            app:key="crash_reporting_enabled"
+            app:title="Crash reporting"
+            app:summary="Send crash and error reports (Firebase Crashlytics) so bugs can be found and fixed"
+            app:singleLineTitle="false"
+            app:defaultValue="true"/>
+
+        <SwitchPreferenceCompat
+            app:key="analytics_enabled"
+            app:title="Usage analytics"
+            app:summary="Share anonymous usage data (Firebase Analytics) to help improve the app"
+            app:singleLineTitle="false"
+            app:defaultValue="false"/>
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:key="about" app:title="Other actions">
 
         <Preference

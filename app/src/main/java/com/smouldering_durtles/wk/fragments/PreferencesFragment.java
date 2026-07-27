@@ -56,6 +56,7 @@ import com.smouldering_durtles.wk.components.NumberRangePreference;
 import com.smouldering_durtles.wk.components.NumberRangePreferenceDialogFragment;
 import com.smouldering_durtles.wk.components.TaggedUrlPreference;
 import com.smouldering_durtles.wk.components.TaggedUrlPreferenceDialogFragment;
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.jobs.ResetDatabaseJob;
 import com.smouldering_durtles.wk.livedata.LiveApiState;
 import com.smouldering_durtles.wk.services.JobRunnerService;
@@ -261,6 +262,26 @@ public final class PreferencesFragment extends PreferenceFragmentCompat {
             themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
                 // Update the state of the Preference with the new value.
                 // The SummaryProvider will handle updating the summary.
+                return true;
+            });
+        }
+
+        final @Nullable TwoStatePreference crashReportingPref = findPreference("crash_reporting_enabled");
+        if (crashReportingPref != null) {
+            crashReportingPref.setOnPreferenceChangeListener((preference, newValue) -> {
+                GlobalSettings.Diagnostics.setCrashReportingEnabled(isTrue(newValue));
+                GlobalSettings.Diagnostics.setConsentRequested(true);
+                Diagnostics.applyConsentState();
+                return true;
+            });
+        }
+
+        final @Nullable TwoStatePreference analyticsPref = findPreference("analytics_enabled");
+        if (analyticsPref != null) {
+            analyticsPref.setOnPreferenceChangeListener((preference, newValue) -> {
+                GlobalSettings.Diagnostics.setAnalyticsEnabled(isTrue(newValue));
+                GlobalSettings.Diagnostics.setConsentRequested(true);
+                Diagnostics.applyConsentState();
                 return true;
             });
         }

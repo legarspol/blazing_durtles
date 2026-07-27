@@ -671,6 +671,85 @@ public final class GlobalSettings {
     }
 
     /**
+     * Diagnostics and privacy settings: opt-in crash reporting and usage analytics.
+     *
+     * <p>These keys are shared with the "Diagnostics and privacy" switches in the
+     * settings screen and with the first-run consent dialog. Nothing is collected until
+     * {@link #getConsentRequested()} is true; see
+     * {@code com.smouldering_durtles.wk.diagnostics.Diagnostics}.</p>
+     */
+    public static final class Diagnostics {
+        /**
+         * Private constructor.
+         */
+        private Diagnostics() {
+            //
+        }
+
+        /**
+         * Whether the first-run diagnostics consent prompt has been answered yet. Until
+         * it has, no diagnostics are collected regardless of the toggle defaults below.
+         *
+         * @return true if the user has been asked for consent
+         */
+        public static boolean getConsentRequested() {
+            return prefs().getBoolean("diagnostics_consent_requested", false);
+        }
+
+        /**
+         * Record that the first-run diagnostics consent prompt has been answered.
+         *
+         * @param value true once the user has been asked
+         */
+        public static void setConsentRequested(final boolean value) {
+            final SharedPreferences.Editor editor = prefs().edit();
+            editor.putBoolean("diagnostics_consent_requested", value);
+            editor.apply();
+        }
+
+        /**
+         * Whether crash reporting (Firebase Crashlytics) is enabled. Defaults to on, but
+         * stays dormant until consent has been given (see {@link #getConsentRequested()}).
+         *
+         * @return true if crash reporting is enabled
+         */
+        public static boolean isCrashReportingEnabled() {
+            return prefs().getBoolean("crash_reporting_enabled", true);
+        }
+
+        /**
+         * Turn crash reporting on or off.
+         *
+         * @param value true to enable crash reporting
+         */
+        public static void setCrashReportingEnabled(final boolean value) {
+            final SharedPreferences.Editor editor = prefs().edit();
+            editor.putBoolean("crash_reporting_enabled", value);
+            editor.apply();
+        }
+
+        /**
+         * Whether usage analytics (Firebase Analytics) is enabled. Defaults to off.
+         *
+         * @return true if analytics is enabled
+         */
+        public static boolean isAnalyticsEnabled() {
+            return prefs().getBoolean("analytics_enabled", false);
+        }
+
+        /**
+         * Turn usage analytics on or off.
+         *
+         * @param value true to enable analytics
+         */
+        public static void setAnalyticsEnabled(final boolean value) {
+            final SharedPreferences.Editor editor = prefs().edit();
+            editor.putBoolean("analytics_enabled", value);
+            editor.apply();
+        }
+    }
+
+    /**
      * Api settings.
      */
     public static final class Api {

@@ -40,6 +40,12 @@
         android:name=".WkHiltApplication"
         >
 
+        <!-- Diagnostics are opt-in: keep both Firebase SDKs dormant until the user
+             consents. Diagnostics.applyConsentState() enables them at runtime only for
+             users who opted in. -->
+        <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+
         <activity android:name=".activities.MainActivity"
             android:label="@string/applabel"
             android:exported="true"

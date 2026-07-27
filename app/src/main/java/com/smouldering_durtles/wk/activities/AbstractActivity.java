@@ -54,8 +54,8 @@ import android.view.ViewGroup;
 import android.widget.ScrollView;
 
 import com.smouldering_durtles.wk.Actment;
+import com.smouldering_durtles.wk.BuildConfig;
 import com.smouldering_durtles.wk.GlobalSettings;
-import com.smouldering_durtles.wk.Identification;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.model.Subject;
@@ -71,7 +71,6 @@ import com.smouldering_durtles.wk.jobs.SettingChangedJob;
 import com.smouldering_durtles.wk.jobs.SyncNowJob;
 import com.smouldering_durtles.wk.jobs.SyncSubjectJob;
 import com.smouldering_durtles.wk.jobs.TickJob;
-import com.smouldering_durtles.wk.livedata.LiveLevelDuration;
 import com.smouldering_durtles.wk.livedata.LiveSessionProgress;
 import com.smouldering_durtles.wk.livedata.LiveSessionState;
 import com.smouldering_durtles.wk.livedata.LiveTaskCounts;
@@ -272,17 +271,6 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
                 }
             }
         }));
-
-        LiveLevelDuration.getInstance().observe(this, t -> safe(() -> {
-            final @Nullable Menu menu = getMenu();
-            if (menu != null) {
-                final @Nullable MenuItem testItem = menu.findItem(R.id.action_test);
-                if (testItem != null) {
-                    final @Nullable String username = t.getUsername();
-                    testItem.setVisible(!isEmpty(username) && username.equals(Identification.AUTHOR_USERNAME));
-                }
-            }
-        }));
     }
 
     @Override
@@ -413,8 +401,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
 
         final @Nullable MenuItem testItem = menu.findItem(R.id.action_test);
         if (testItem != null) {
-            final @Nullable String username = LiveLevelDuration.getInstance().get().getUsername();
-            testItem.setVisible(!isEmpty(username) && username.equals(Identification.AUTHOR_USERNAME));
+            testItem.setVisible(BuildConfig.DEBUG);
         }
 
         final @Nullable MenuItem muteItem = menu.findItem(R.id.action_mute);

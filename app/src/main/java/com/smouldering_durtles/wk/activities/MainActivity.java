@@ -23,13 +23,17 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.api.ApiState;
 import com.smouldering_durtles.wk.jobs.RetryApiErrorJob;
 import com.smouldering_durtles.wk.livedata.LiveAlertContext;
@@ -82,6 +86,12 @@ public final class MainActivity extends AbstractActivity {
     private final ViewProxy apiKeyRejectedView = new ViewProxy();
     private final ViewProxy keyboardHelpView = new ViewProxy();
     private @Nullable ActivityResultLauncher<String> notificationPermissionLauncher = null;
+
+    /**
+     * The first-run diagnostics consent dialog, kept so a second onResume doesn't stack
+     * another copy on top of it.
+     */
+    private @Nullable AlertDialog diagnosticsConsentDialog = null;
 
     /**
      * The constructor.
@@ -206,6 +216,42 @@ public final class MainActivity extends AbstractActivity {
         }
     }
 
+    /**
+     * On first run, ask the user whether to enable diagnostics. Nothing is collected
+     * until they answer this. Crash reporting is pre-checked (opt-out) and analytics is
+     * pre-unchecked (opt-in); both are only applied once they tap Save. Subsequent runs
+     * skip this, since {@link GlobalSettings.Diagnostics#getConsentRequested()} is set.
+     *
+     * <p>This runs from onResume rather than onCreate: without an API key, onResume
+     * bounces straight to NoApiKeyHelpActivity, which would bury a dialog created here.
+     * Asking on resume means the user sees it once they actually land on this screen.
+     */
+    private void maybeShowDiagnosticsConsent() {
+        if (GlobalSettings.Diagnostics.getConsentRequested()
+                || diagnosticsConsentDialog != null && diagnosticsConsentDialog.isShowing()) {
+            return;
+        }
+
+        final View dialogView = getLayoutInflater().inflate(R.layout.dialog_diagnostics_consent, null);
+        final SwitchCompat crashSwitch = dialogView.findViewById(R.id.switch_crash_reporting);
+        final SwitchCompat analyticsSwitch = dialogView.findViewById(R.id.switch_analytics);
+        crashSwitch.setChecked(GlobalSettings.Diagnostics.isCrashReportingEnabled());
+        analyticsSwitch.setChecked(GlobalSettings.Diagnostics.isAnalyticsEnabled());
+
+        diagnosticsConsentDialog = new AlertDialog.Builder(this)
+                .setTitle("Help improve Blazing Durtles")
+                .setView(dialogView)
+                .setCancelable(false)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    GlobalSettings.Diagnostics.setCrashReportingEnabled(crashSwitch.isChecked());
+                    GlobalSettings.Diagnostics.setAnalyticsEnabled(analyticsSwitch.isChecked());
+                    GlobalSettings.Diagnostics.setConsentRequested(true);
+                    Diagnostics.applyConsentState();
+                })
+                .create();
+        diagnosticsConsentDialog.show();
+    }
+
     @Override
     protected void onResumeLocal() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -216,6 +262,8 @@ public final class MainActivity extends AbstractActivity {
             GlobalSettings.Tutorials.setNotificationPermissionAsked(true);
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
+
+        maybeShowDiagnosticsConsent();
 
         BackgroundAlarmReceiver.scheduleOrCancelAlarm();
         BackgroundSyncWorker.scheduleOrCancelWork();
