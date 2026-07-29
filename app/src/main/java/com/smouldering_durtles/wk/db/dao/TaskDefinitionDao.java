@@ -23,7 +23,6 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import com.smouldering_durtles.wk.db.model.TaskDefinition;
 import com.smouldering_durtles.wk.model.TaskCounts;
-import com.smouldering_durtles.wk.tasks.ApiTask;
 
 import javax.annotation.Nullable;
 
@@ -84,13 +83,13 @@ public abstract class TaskDefinitionDao {
     public abstract @Nullable TaskDefinition getNextTaskDefinition();
 
     /**
-     * Room-generated method: get the number of tasks for a certain task class.
+     * Room-generated method: get the number of tasks for a certain task type.
      *
-     * @param taskClass the class to look for
+     * @param taskClass the task type key to look for, see ApiTaskType
      * @return the number
      */
     @Query("SELECT COUNT(*) FROM task_definition WHERE taskClass = :taskClass")
-    public abstract int getCountByType(Class<? extends ApiTask> taskClass);
+    public abstract int getCountByType(String taskClass);
 
     /**
      * Room-generated method: insert a new task.
