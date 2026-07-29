@@ -22,10 +22,6 @@
         android:title="Search"
         android:icon="@drawable/ic_baseline_search_24px_white"
         app:showAsAction="ifRoom|collapseActionView"/>
-    <item android:id="@+id/action_dashboard"
-        android:title="Dashboard"
-        android:icon="@drawable/ic_baseline_home_24px_white"
-        app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_mute"
         android:title="Mute"
         android:icon="@drawable/ic_baseline_volume_up_24px"

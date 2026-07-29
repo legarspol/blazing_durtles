@@ -443,10 +443,6 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             item.setTitle(title);
             return true;
         }
-        if (itemId == R.id.action_dashboard) {
-            goToMainActivity();
-            return true;
-        }
         if (itemId == R.id.action_download_audio) {
             goToActivity(DownloadAudioActivity.class);
             return true;
