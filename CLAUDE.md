@@ -57,7 +57,7 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 3. **Tested** — for any non-trivial logic, characterization tests were written *first* (JVM `kotlin.test`/JUnit) to lock current behavior, and `./gradlew test` is green. Behavior parity with the old code unless the ticket says otherwise.
 4. **No regressions in the risky paths** — answer grading (`FuzzyMatching`) and SRS scheduling (`SrsSystem`) have explicit before/after parity when touched (they fail silently in the UI).
 5. **Conventions honored** — no `safe()` swallowing, no new god-classes, no banned libraries, strings in Kotlin.
-6. **App still runs** — the review + lesson end-to-end flow works (drive it via the `/run` skill for anything with runtime surface, not just tests).
+6. **App still runs** — the review + lesson end-to-end flow works. For anything with runtime surface, tests are not enough: install and drive it on a device or emulator (`android run --device=<serial> --apks=app/build/outputs/apk/debug/app-debug.apk`, then `android screen capture` / `android layout` to check the result).
 7. **Observability** — new code lets exceptions reach Crashlytics; key flows emit the agreed analytics events.
 
 ## Phase order (see `docs/MIGRATION_PLAN.md`)
