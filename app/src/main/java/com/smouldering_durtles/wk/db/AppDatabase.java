@@ -50,6 +50,7 @@ import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.jobs.TickJob;
 import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.services.JobRunnerService;
+import com.smouldering_durtles.wk.tasks.ApiTaskType;
 import com.smouldering_durtles.wk.tasks.DownloadAudioTask;
 import com.smouldering_durtles.wk.tasks.DownloadPitchInfoTask;
 import com.smouldering_durtles.wk.tasks.GetAssignmentsTask;
@@ -131,10 +132,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the user endpoint if it doesn't exist already.
      */
     public final void assertGetUserTask() {
-        final int count = taskDefinitionDao().getCountByType(GetUserTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_USER.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetUserTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_USER.getKey());
             taskDefinition.setPriority(GetUserTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -145,10 +146,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the subjects endpoint if it doesn't exist already.
      */
     public final void assertGetSubjectsTask() {
-        final int count = taskDefinitionDao().getCountByType(GetSubjectsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_SUBJECTS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetSubjectsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_SUBJECTS.getKey());
             taskDefinition.setPriority(GetSubjectsTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -160,10 +161,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * @param subjectId The id for the subject to get.
      */
     public final void assertGetSubjectTask(String subjectId) {
-        final int count = taskDefinitionDao().getCountByType(GetSubjectTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_SUBJECT.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetSubjectTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_SUBJECT.getKey());
             taskDefinition.setPriority(GetSubjectTask.PRIORITY);
             taskDefinition.setData(subjectId);
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -173,10 +174,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the assignments endpoint if it doesn't exist already.
      */
     public final void assertGetAssignmentsTask() {
-        final int count = taskDefinitionDao().getCountByType(GetAssignmentsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_ASSIGNMENTS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetAssignmentsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_ASSIGNMENTS.getKey());
             taskDefinition.setPriority(GetAssignmentsTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -189,10 +190,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * @param subjectIds the subject IDs to fetch for
      */
     public final void assertGetPatchedAssignmentsTask(final Iterable<Long> subjectIds) {
-        final int count = taskDefinitionDao().getCountByType(GetPatchedAssignmentsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_PATCHED_ASSIGNMENTS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetPatchedAssignmentsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_PATCHED_ASSIGNMENTS.getKey());
             taskDefinition.setPriority(GetPatchedAssignmentsTask.PRIORITY);
             taskDefinition.setData(join(",", "", "", subjectIds));
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -203,10 +204,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the review statistics endpoint if it doesn't exist already.
      */
     public final void assertGetReviewStatisticsTask() {
-        final int count = taskDefinitionDao().getCountByType(GetReviewStatisticsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_REVIEW_STATISTICS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetReviewStatisticsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_REVIEW_STATISTICS.getKey());
             taskDefinition.setPriority(GetReviewStatisticsTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -219,10 +220,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * @param subjectIds the subject IDs to fetch for
      */
     public final void assertGetPatchedReviewStatisticsTask(final Iterable<Long> subjectIds) {
-        final int count = taskDefinitionDao().getCountByType(GetPatchedReviewStatisticsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_PATCHED_REVIEW_STATISTICS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetPatchedReviewStatisticsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_PATCHED_REVIEW_STATISTICS.getKey());
             taskDefinition.setPriority(GetPatchedReviewStatisticsTask.PRIORITY);
             taskDefinition.setData(join(",", "", "", subjectIds));
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -233,10 +234,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the study materials endpoint if it doesn't exist already.
      */
     public final void assertGetStudyMaterialsTask() {
-        final int count = taskDefinitionDao().getCountByType(GetStudyMaterialsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_STUDY_MATERIALS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetStudyMaterialsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_STUDY_MATERIALS.getKey());
             taskDefinition.setPriority(GetStudyMaterialsTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -249,10 +250,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * @param subjectIds the subject IDs to fetch for
      */
     public final void assertGetPatchedStudyMaterialsTask(final Iterable<Long> subjectIds) {
-        final int count = taskDefinitionDao().getCountByType(GetPatchedStudyMaterialsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_PATCHED_STUDY_MATERIALS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetPatchedStudyMaterialsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_PATCHED_STUDY_MATERIALS.getKey());
             taskDefinition.setPriority(GetPatchedStudyMaterialsTask.PRIORITY);
             taskDefinition.setData(join(",", "", "", subjectIds));
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -263,10 +264,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the SRS systems endpoint if it doesn't exist already.
      */
     public final void assertGetSrsSystemsTask() {
-        final int count = taskDefinitionDao().getCountByType(GetSrsSystemsTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_SRS_SYSTEMS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetSrsSystemsTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_SRS_SYSTEMS.getKey());
             taskDefinition.setPriority(GetSrsSystemsTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -277,10 +278,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the summary endpoint if it doesn't exist already.
      */
     public final void assertGetSummaryTask() {
-        final int count = taskDefinitionDao().getCountByType(GetSummaryTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_SUMMARY.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetSummaryTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_SUMMARY.getKey());
             taskDefinition.setPriority(GetSummaryTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -291,10 +292,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for fetching the level progression endpoint if it doesn't exist already.
      */
     public final void assertGetLevelProgressionTask() {
-        final int count = taskDefinitionDao().getCountByType(GetLevelProgressionTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.GET_LEVEL_PROGRESSION.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(GetLevelProgressionTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.GET_LEVEL_PROGRESSION.getKey());
             taskDefinition.setPriority(GetLevelProgressionTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -315,7 +316,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public final void assertReportSessionItemTask(final long timeStamp, final long subjectId, final long assignmentId, final SessionType type,
                                                   final int meaningIncorrect, final int readingIncorrect, final boolean justPassed) {
         final TaskDefinition taskDefinition = new TaskDefinition();
-        taskDefinition.setTaskClass(ReportSessionItemTask.class);
+        taskDefinition.setTaskClass(ApiTaskType.REPORT_SESSION_ITEM.getKey());
         taskDefinition.setPriority(ReportSessionItemTask.PRIORITY);
         taskDefinition.setData(String.format(Locale.ROOT, "%d %d %d %s %d %d %s", timeStamp,
                 subjectId, assignmentId, type, meaningIncorrect, readingIncorrect, justPassed));
@@ -329,7 +330,7 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     public final void assertDownloadAudioTask(final PronunciationAudioOwner subject) {
         final TaskDefinition taskDefinition = new TaskDefinition();
-        taskDefinition.setTaskClass(DownloadAudioTask.class);
+        taskDefinition.setTaskClass(ApiTaskType.DOWNLOAD_AUDIO.getKey());
         taskDefinition.setPriority(DownloadAudioTask.PRIORITY);
         taskDefinition.setData(Long.toString(subject.getId()));
         taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -342,7 +343,7 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     public final void assertDownloadPitchInfoTask(final long subjectId) {
         final TaskDefinition taskDefinition = new TaskDefinition();
-        taskDefinition.setTaskClass(DownloadPitchInfoTask.class);
+        taskDefinition.setTaskClass(ApiTaskType.DOWNLOAD_PITCH_INFO.getKey());
         taskDefinition.setPriority(DownloadPitchInfoTask.PRIORITY);
         taskDefinition.setData(Long.toString(subjectId));
         taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -355,7 +356,7 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     public final void assertSubmitStudyMaterialTask(final String data) {
         final TaskDefinition taskDefinition = new TaskDefinition();
-        taskDefinition.setTaskClass(SubmitStudyMaterialTask.class);
+        taskDefinition.setTaskClass(ApiTaskType.SUBMIT_STUDY_MATERIAL.getKey());
         taskDefinition.setPriority(SubmitStudyMaterialTask.PRIORITY);
         taskDefinition.setData(data);
         taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -365,10 +366,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for loading reference data for all subjects in one go.
      */
     public final void loadReferenceData() {
-        final int count = taskDefinitionDao().getCountByType(LoadReferenceDataTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.LOAD_REFERENCE_DATA.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(LoadReferenceDataTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.LOAD_REFERENCE_DATA.getKey());
             taskDefinition.setPriority(LoadReferenceDataTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);
@@ -379,10 +380,10 @@ public abstract class AppDatabase extends RoomDatabase {
      * Add a task for scanning audio download status for all subjects in one go.
      */
     public final void assertScanAudioDownloadStatusTask() {
-        final int count = taskDefinitionDao().getCountByType(ScanAudioDownloadStatusTask.class);
+        final int count = taskDefinitionDao().getCountByType(ApiTaskType.SCAN_AUDIO_DOWNLOAD_STATUS.getKey());
         if (count == 0) {
             final TaskDefinition taskDefinition = new TaskDefinition();
-            taskDefinition.setTaskClass(ScanAudioDownloadStatusTask.class);
+            taskDefinition.setTaskClass(ApiTaskType.SCAN_AUDIO_DOWNLOAD_STATUS.getKey());
             taskDefinition.setPriority(ScanAudioDownloadStatusTask.PRIORITY);
             taskDefinition.setData("");
             taskDefinitionDao().insertTaskDefinition(taskDefinition);

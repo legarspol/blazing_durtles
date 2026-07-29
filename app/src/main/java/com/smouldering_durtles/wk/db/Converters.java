@@ -25,7 +25,6 @@ import com.smouldering_durtles.wk.enums.KanjiAcceptedReadingType;
 import com.smouldering_durtles.wk.enums.SessionItemState;
 import com.smouldering_durtles.wk.enums.SessionType;
 import com.smouldering_durtles.wk.enums.SubjectType;
-import com.smouldering_durtles.wk.tasks.ApiTask;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -65,38 +64,6 @@ public final class Converters {
             objectMapper.getDateFormat().setTimeZone(TimeZone.getTimeZone("Z"));
         }
         return objectMapper;
-    }
-
-    /**
-     * Convert a String to an ApiTask subclass.
-     *
-     * @param value the canonical name or null
-     * @return the class instance or null
-     */
-    @TypeConverter
-    public static @Nullable Class<? extends ApiTask> stringToTaskClass(final @Nullable String value) {
-        if (value == null) {
-            return null;
-        }
-        try {
-            return Class.forName(value).asSubclass(ApiTask.class);
-        } catch (final ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Convert an ApiTask subclass to a String.
-     *
-     * @param value the class instance or null
-     * @return the canonical name or null
-     */
-    @TypeConverter
-    public static @Nullable String taskClassToString(final @Nullable Class<? extends ApiTask> value) {
-        if (value == null) {
-            return null;
-        }
-        return value.getCanonicalName();
     }
 
     /**

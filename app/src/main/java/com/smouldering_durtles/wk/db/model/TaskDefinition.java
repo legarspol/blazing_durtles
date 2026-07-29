@@ -18,7 +18,6 @@ package com.smouldering_durtles.wk.db.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import com.smouldering_durtles.wk.tasks.ApiTask;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +27,7 @@ import javax.annotation.Nullable;
 @Entity(tableName = "task_definition")
 public final class TaskDefinition {
     @PrimaryKey(autoGenerate = true) private int id = 0;
-    private @Nullable Class<? extends ApiTask> taskClass;
+    private @Nullable String taskClass;
     private int priority = 0;
     private @Nullable String data;
 
@@ -49,18 +48,18 @@ public final class TaskDefinition {
     }
 
     /**
-     * The class implementing this type of task.
+     * The key identifying this task's type, see ApiTaskType.
      * @return the value
      */
-    public @Nullable Class<? extends ApiTask> getTaskClass() {
+    public @Nullable String getTaskClass() {
         return taskClass;
     }
 
     /**
-     * The class implementing this type of task.
+     * The key identifying this task's type, see ApiTaskType.
      * @param taskClass the value
      */
-    public void setTaskClass(final @Nullable Class<? extends ApiTask> taskClass) {
+    public void setTaskClass(final @Nullable String taskClass) {
         this.taskClass = taskClass;
     }
 
