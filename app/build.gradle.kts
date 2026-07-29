@@ -21,13 +21,13 @@ if (!googleServicesJson.exists()) {
 
 android {
     namespace = "com.smouldering_durtles.wk"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.blazingdurtles.android"
         // Firebase (BOM 33+) requires API 23; every Firebase SDK declares minSdk 23.
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 86
         versionName = "1.2.5"
         vectorDrawables.useSupportLibrary = true
