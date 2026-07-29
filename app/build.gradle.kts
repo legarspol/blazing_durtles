@@ -28,8 +28,8 @@ android {
         // Firebase (BOM 33+) requires API 23; every Firebase SDK declares minSdk 23.
         minSdk = 23
         targetSdk = 35
-        versionCode = 85
-        versionName = "1.2.4"
+        versionCode = 86
+        versionName = "1.2.5"
         vectorDrawables.useSupportLibrary = true
         vectorDrawables.generatedDensities()
 
@@ -57,7 +57,6 @@ android {
                 "FILEPROVIDER_AUTHORITY",
                 "\"com.blazingdurtles.android.fileprovider\""
             )
-            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"
