@@ -31,14 +31,15 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 ## Module layout
 
 - **Two modules: `:core` + `:app`.** No `commonMain`/`androidMain` source sets yet; the KMP *platform* split is still deferred, but `:core` is the seam it will extract through.
-  - **`:core`** — pure Kotlin/JVM, **no Android SDK on its classpath**. Holds the `…/domain` layer. Framework-freedom is *compiler-enforced* here: `android.*`, `Context`, `View`, and resources simply won't resolve. DI is plain constructor `@Inject` (`javax.inject`), wired by `:app`'s Hilt graph — no Hilt/Dagger processor in `:core`.
+  - **`:core`** — pure Kotlin/JVM, **no Android SDK on its classpath**. Holds the `…/domain` layer. Framework-freedom is *compiler-enforced* here: `android.*`, `Context`, `View`, and resources simply won't resolve. DI is plain constructor `@Inject` (`javax.inject`), wired by `:app`'s Hilt graph — no Hilt/Dagger processor in `:core`. Its dependencies are deliberately tiny: `javax.inject`, `kotlinx-datetime`, and `kotlinx-coroutines-core` (declared `api` — domain signatures expose `Flow`/`suspend`, so `:app` compiles against it).
   - **`:app`** — the Android module, depends on `:core`. Holds `…/ui` (Compose + ViewModels), `…/platform` (widget, notifications, alarms, WorkManager, `Context`), the still-legacy Java, and — for now — the `…/data` package.
 - Package convention (base `com.smouldering_durtles.wk`):
   - `…/domain` (in `:core`) — **Android-framework-free, compiler-enforced**. Platform needs sit behind interfaces implemented in `:app`.
   - `…/data` (in `:app` for now) — avoids the Android *framework* by convention; promotion to its own module is deferred until its Room/Ktor shape settles.
   - `…/ui` — Jetpack Compose screens + ViewModels.
   - `…/platform` — everything Android-specific: widget, notifications, alarms, WorkManager, `Context`.
-- Build config (`:app`): `compileSdk 35`, `minSdk 23`, `targetSdk 35`, namespace `com.smouldering_durtles.wk`. (`minSdk` was 21; Firebase BOM 33+ declares `minSdk 23` across every SDK, so Crashlytics/Analytics forced the bump.)
+- Build config (`:app`): `compileSdk 37`, `minSdk 23`, `targetSdk 37`, namespace `com.smouldering_durtles.wk`. (`minSdk` was 21; Firebase BOM 33+ declares `minSdk 23` across every SDK, so Crashlytics/Analytics forced the bump.)
+- **All dependency versions live in `gradle/libs.versions.toml`** — declare new ones there and reference them as `libs.*`. Never inline a version string in a build script.
 
 ## Code conventions
 
@@ -63,3 +64,5 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 ## Phase order (see `docs/MIGRATION_PLAN.md`)
 
 0 Foundation (toolchain + stand up `:core`) → 1 Delete dead code → 2 Data layer → 3 Domain layer → 4 UI (Compose, mostly human). **Burn/resurrect + web scraping are deferred** (lowest priority; kept as legacy Java, instrumented, decided later).
+
+**Where we are:** Phase 0 is **done** — Kotlin/Java interop, Hilt on KSP, Compose, Ktor + kotlinx.serialization, DataStore, coroutines, Crashlytics + Analytics (consent-gated, opt-out shipped), and `:core` all stand up. Room deliberately stays on `annotationProcessor` until the Phase 2 entity/DAO port flips it to KSP. Phase 1 is **nearly done** — the Room migrations + `DatabaseMigrationTest`, Glide + `welcome.gif`, the vendored jsr305 files, and the genuinely-unused classes are all deleted; what remains is trimming the dead defensive scaffolding (the `Converters`/`ApiTaskService` swallow that silently drops queued API tasks, which also blocks enabling R8).
