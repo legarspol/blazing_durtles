@@ -747,6 +747,29 @@ public final class GlobalSettings {
             editor.putBoolean("analytics_enabled", value);
             editor.apply();
         }
+
+        /**
+         * The highest {@code ApplicationExitInfo.getTimestamp()} already reported to
+         * Crashlytics by {@code ExitInfoReporter}. Used as a dedupe watermark so the same
+         * exit is never reported twice.
+         *
+         * @return the timestamp, or 0 if nothing has been reported yet
+         */
+        public static long getLastReportedExitTimestamp() {
+            return prefs().getLong("last_reported_exit_timestamp", 0);
+        }
+
+        /**
+         * Record the highest {@code ApplicationExitInfo.getTimestamp()} reported to
+         * Crashlytics so far.
+         *
+         * @param value the timestamp
+         */
+        public static void setLastReportedExitTimestamp(final long value) {
+            final SharedPreferences.Editor editor = prefs().edit();
+            editor.putLong("last_reported_exit_timestamp", value);
+            editor.apply();
+        }
     }
 
     /**
