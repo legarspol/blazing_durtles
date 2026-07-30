@@ -55,8 +55,27 @@ Four rules that keep this honest:
 
 - **Pure logic never lives in a coordinator.** If a method has no I/O, it belongs in `…/domain` where it can be unit-tested. This is exactly what `SubjectSyncDao` got wrong — availability rules buried in a class that also does SQL and JSON.
 - **No blanket use-case layer.** Introduce a use-case class when one named operation has real orchestration to justify it, never one per screen action. A layer of one-method classes wrapping single repository calls is the "manufactured indirection" the decomposition rule below warns against.
-- **A domain-side interface only when domain actually reads it.** Not everything persisted is a domain concern. Of the 17 `GlobalSettings` groups, roughly half — `Display`, `Dashboard`, `SubjectInfo`, `Font`, `Keyboard`, `Tutorials`, `UiConfirmations` — are pure presentation that `:core` will never call; a ViewModel or Composable reads those straight from the `…/data` settings object. `Api` and `Diagnostics` are consumed by the data and platform layers themselves. Only the session-shaping groups (`Review`, `AdvancedLesson`, `AdvancedReview`, `AdvancedSelfStudy`) feed the engine that Phase 3 extracts into `:core`, and those need the interface because `:core` has no DataStore on its classpath. Putting the rest behind a domain interface would leave `:core` carrying interfaces nothing in it ever calls.
-- **Domain interfaces are shaped by their consumer, not by the storage layout.** If the session engine reads six values spread across `Review` and the three `Advanced*` groups, that is *one* `SessionPreferences` in `…/domain` with six properties — not four interfaces mirroring the settings groups. The grouping is a storage and settings-screen convenience; the domain should not inherit it.
+- **A domain-side interface only when domain actually reads it.** Not everything persisted is a domain concern, and putting the rest behind a domain interface would leave `:core` carrying interfaces nothing in it ever calls — and would drag presentation types like `Theme` into the framework-free module to make the signatures compile. See the verified split below.
+- **Domain interfaces are shaped by their consumer, not by the storage layout.** The session engine's settings are spread across five groups plus an ungrouped tier, and that is *one* `SessionPreferences` in `…/domain`, not six interfaces mirroring storage. The grouping is a storage and settings-screen convenience; the domain should not inherit it.
+
+### Which settings the domain actually reads (verified)
+
+Established by bucketing all 298 qualified `GlobalSettings.<Group>` call sites by caller package, then reading the ambiguous ones. `model/` is the proxy for "destined for `:core`" — it is the domain heart Phase 3 extracts.
+
+**Every single `model/` read lives in `Session` (35) or `Question` (1).** Nothing else in the domain heart touches settings at all.
+
+| Reads settings from `model/`? | Groups |
+|---|---|
+| **Yes — genuine domain input** | `AdvancedLesson`, `AdvancedReview`, `AdvancedSelfStudy` (7 reads each, and read from **nowhere but** `model/`), `Review` (8), `AdvancedOther` (`getKanjiModeOnKun` ×3) |
+| **Yes, but not domain on inspection** | `Keyboard` (`isNextButtonFrozen()` — UI button state), `Api` and `SubjectInfo` (both only to schedule media prefetch — coordinator I/O, not a rule) |
+| **No reads from `model/` at all** | `Dashboard`, `Display`, `Font`, `Tutorials`, `UiConfirmations`, `Experimental`, `Other`, `Audio`, `Diagnostics` |
+
+So `SessionPreferences` is the interface `:core` needs, and it is close to the only one.
+
+Two things this turned up that the "~16 per-feature objects" framing misses:
+
+- **There is an ungrouped tier of top-level accessors, and it is the most domain-relevant of all.** `getBackToBack(sessionType)`, `getReadingFirst`, `getMeaningFirst`, `getOrderReversed`, `getOrderOverdueFirst`, `getOrderPriority`, `getSubjectComparator`, `getSubjectSelectionRules`, `getShuffleAfterSelection`, `getRandomizeInflections`, `getAnkiMode` — these dispatch on `SessionType` to the right `Advanced*` group, and account for 10 of the `model/` reads. They are **already a consumer-shaped facade over the storage groups**, which is exactly the shape `SessionPreferences` should take. Model it on these, not on the nested groups.
+- **A display setting drives a data decision.** `SubjectInfo.getShowPitchInfo` is read in `Session` to decide whether to *download* pitch info, not whether to show it. Untangle that when the prefetch moves to a coordinator, rather than dragging a presentation setting into `:core`.
 
 **Repositories expose domain types — eventually.** The target is that repository interfaces sit in `:core/…/domain` and speak in domain types, with the mapping done by their `…/data` implementations. That is forced rather than chosen: `:core` has no Room or Ktor on its classpath, so an interface there *cannot* mention a Room entity. But the domain model does not exist yet (Phase 3 builds it), so the trajectory is:
 
