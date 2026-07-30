@@ -66,7 +66,7 @@ shared code, so KEEP means "keep on the Android target"):
 
 | Concern | Current | Files | KMP replacement | Difficulty | Note |
 |---|---|---|---|---|---|
-| HTTP client | OkHttp 5.0.0-alpha.6 + okhttp-urlconnection | `ApiTask`, `WebClient`, `PitchInfoUtil`, `DbLogger` | Ktor Client | **Medium** | REST side is easy; `WebClient` does HTML-form login + cookie jar scraping of wanikani.com — the hard 20%. |
+| HTTP client | OkHttp 5.0.0-alpha.6 + okhttp-urlconnection | `ApiTask`, `WebClient`, `PitchInfoUtil`, `DbLogger` | Ktor Client | **Medium** | REST side is easy; `WebClient` does HTML-form login + cookie jar scraping of wanikani.com — the hard 20%. **Correction:** only `WebClient` uses OkHttp's API. `ApiTask`/`PitchInfoUtil`/`DbLogger` call `HttpsURLConnection` directly, and since nothing installs a `URLStreamHandlerFactory`, `okhttp-urlconnection` is **inert** — a candidate for deletion independent of the Ktor port. OkHttp itself stays as Ktor's engine. |
 | JSON | Jackson databind 2.15 | 39 files (22 DTOs annotated) | kotlinx.serialization | **Medium-High** | Re-annotate DTOs; port 2 custom (`PitchInfo`, `WaniKaniApiDate`) ser/deser pairs. |
 | JSON (stray) | Gson 2.10.1 | `BackupActivity` only | kotlinx.serialization | **Easy** | Single use; collapse into the above. |
 | Database | Room 2.6.1 (Java, 9 entities, 13 DAOs, v68) | `db/*` | **Room KMP (2.8.x + KSP)** | **Medium** | No library swap — same annotations, Java→Kotlin + `annotationProcessor`→KSP. No migrations to reproduce (fresh install). Was the "Hard" row; now de-risked. |

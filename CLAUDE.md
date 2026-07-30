@@ -16,7 +16,7 @@ Migration tickets follow `docs/TICKET_TEMPLATE.md` (Context / Files in scope / A
 | DI | **Hilt** in `:app`. `:core` carries plain constructor `@Inject` (`javax.inject`) that the `:app` Hilt graph wires — no Hilt/Dagger processor in `:core` (Hilt is Android-only) |
 | UI | **Jetpack Compose** (Android idioms first) |
 | Persistence | **Room** (Kotlin + KSP). No migrations — fresh install, v68 schema only |
-| Networking | **Ktor client + kotlinx.serialization** (replaces OkHttp + Jackson) |
+| Networking | **Ktor client + kotlinx.serialization** (replaces `HttpsURLConnection` + Jackson; OkHttp stays as Ktor's engine) |
 | Preferences | **DataStore (Preferences)** (replaces SharedPreferences / androidx.preference) |
 | Reactive state | **StateFlow / Flow** (replaces LiveData) |
 | Async | **Coroutines** (replaces custom AsyncTask, Handler/Looper, both JobIntentService queues) |
@@ -38,6 +38,7 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
   - `…/data` (in `:app` for now) — avoids the Android *framework* by convention; promotion to its own module is deferred until its Room/Ktor shape settles.
   - `…/ui` — Jetpack Compose screens + ViewModels.
   - `…/platform` — everything Android-specific: widget, notifications, alarms, WorkManager, `Context`.
+  - `…/di` — Hilt modules and qualifiers only. Nothing with behaviour lives here.
 - Build config (`:app`): `compileSdk 37`, `minSdk 23`, `targetSdk 37`, namespace `com.smouldering_durtles.wk`. (`minSdk` was 21; Firebase BOM 33+ declares `minSdk 23` across every SDK, so Crashlytics/Analytics forced the bump.)
 - **All dependency versions live in `gradle/libs.versions.toml`** — declare new ones there and reference them as `libs.*`. Never inline a version string in a build script.
 
@@ -49,6 +50,7 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 - **Crash-fast.** Do **not** port the legacy `ObjectSupport.safe()` swallow-and-ignore pattern. Let exceptions propagate to Crashlytics. Wrap only at genuine process boundaries (a coroutine worker that must not kill the app), and there **report + log — never silently continue**.
 - **Strings as plain Kotlin.** All strings (UI and non-UI) live in typed Kotlin objects (`object XStrings { val y = "…" }`) in the clean packages. No `res/strings.xml`, no `stringResource()`. English-only — no localization.
 - **Async via coroutines/Flow**; expose state as `StateFlow` from ViewModels. No `LiveData`, no new `AsyncTask`/`Handler`.
+- **Never construct a `CoroutineScope` or reference `Dispatchers.*` directly.** Inject them: `@ApplicationScope CoroutineScope` for fire-and-forget work with no other owner, `@IoDispatcher CoroutineDispatcher` for blocking I/O (both from `…/di/CoroutinesModule`). Work a `ViewModel` or `Lifecycle` already owns belongs on `viewModelScope`/`lifecycleScope` so it is cancelled with its owner. Qualifiers on constructor parameters need an explicit `@param:` target (Dagger reads the parameter; Kotlin is changing the untargeted default — KT-73255). The app scope uses a `SupervisorJob` so one child's failure cannot cancel its siblings and deaden the scope for the rest of the process — but note that isolates *cancellation*, not *failure*: an uncaught exception still crashes the app, which crash-fast wants, so do **not** install a blanket `CoroutineExceptionHandler`.
 - Match the surrounding code's naming and idiom; don't reformat untouched code.
 
 ## Definition of Done (a ticket is not done until all hold)
@@ -65,4 +67,8 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
 
 0 Foundation (toolchain + stand up `:core`) → 1 Delete dead code → 2 Data layer → 3 Domain layer → 4 UI (Compose, mostly human). **Burn/resurrect + web scraping are deferred** (lowest priority; kept as legacy Java, instrumented, decided later).
 
-**Where we are:** Phase 0 is **done** — Kotlin/Java interop, Hilt on KSP, Compose, Ktor + kotlinx.serialization, DataStore, coroutines, Crashlytics + Analytics (consent-gated, opt-out shipped), and `:core` all stand up. Room deliberately stays on `annotationProcessor` until the Phase 2 entity/DAO port flips it to KSP. Phase 1 is **nearly done** — the Room migrations + `DatabaseMigrationTest`, Glide + `welcome.gif`, the vendored jsr305 files, and the genuinely-unused classes are all deleted; what remains is trimming the dead defensive scaffolding (the `Converters`/`ApiTaskService` swallow that silently drops queued API tasks, which also blocks enabling R8).
+**Where we are:** Phase 0 is **done** — Kotlin/Java interop, Hilt on KSP, Compose, Ktor + kotlinx.serialization, DataStore, coroutines (incl. the app-lifetime `@ApplicationScope`), Crashlytics + Analytics (consent-gated, opt-out shipped), and `:core` all stand up. Room deliberately stays on `annotationProcessor` until the Phase 2 entity/DAO port flips it to KSP.
+
+Phase 1 is **done** — the Room migrations + `DatabaseMigrationTest`, Glide + `welcome.gif`, the vendored jsr305 files, the genuinely-unused classes, and the `Converters`/`ApiTaskService` swallow that silently dropped queued API tasks are all gone. Enabling R8 (#38) is parked as a `human-task`: it is unblocked by the jsr305 deletion but still needs its keep-list settled, and `isMinifyEnabled` is still `false`.
+
+**Phase 2 is next and fully ticketed** (#54–#62). Start with #54 (DAO + `Converters` characterization tests) — #55 is the atomic `db/`→Kotlin + KSP flip and is checked against those tests plus the committed schema hash. Note the exported Room schema at `app/schemas/com.smouldering_durtles.wk.db.AppDatabase/68.json` (`identityHash 6ac2b0d4d7c4b19e7da78e91b2a07dae`) is the safety net for the whole data-layer port: Room verifies it against `room_master_table` on every open, so any diff to that file means existing installs will refuse to launch. Treat an unexplained change to it as a release blocker, and remember KSP needs its own `room.schemaLocation` argument — the `javaCompileOptions` one does not carry over.
