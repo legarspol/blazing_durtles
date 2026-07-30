@@ -4,8 +4,12 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.smouldering_durtles.wk.GlobalSettings
-import com.smouldering_durtles.wk.util.AsyncTask
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Reads `ActivityManager.getHistoricalProcessExitReasons()` on app start and reports the
@@ -19,6 +23,21 @@ import com.smouldering_durtles.wk.util.AsyncTask
  */
 object ExitInfoReporter {
     private const val TAG = "ExitInfoReporter"
+
+    /**
+     * A one-shot fire-and-forget scan at app start: no lifecycle to tie to, no result
+     * anyone waits for, and nothing worth cancelling (if the process is going away,
+     * dropping the scan is the right outcome — the timestamp watermark makes a re-run
+     * idempotent).
+     *
+     * Deliberate stopgap, **not** the pattern to copy: a leaf class should not own a
+     * process-lifetime scope. This belongs to an injected `@ApplicationScope`
+     * `CoroutineScope` once one exists — introducing it here would mean un-`object`-ing
+     * this class and reaching the Java `WkApplication.onCreateLocal()` call site through
+     * `EntryPointAccessors`, which is a foundation ticket rather than a diagnostics one.
+     * Tracked in issue #52.
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * Kick off the exit-reason scan in the background. Safe to call unconditionally from
@@ -37,23 +56,16 @@ object ExitInfoReporter {
         }
 
         val appContext = context.applicationContext
-
-        object : AsyncTask<Void>() {
-            override fun doInBackground(): Void? {
-                scanAndReport(appContext)
-                return null
-            }
-
-            override fun onPostExecute(result: Void?) {
-                // Nothing to do on the UI thread.
-            }
-
-            override fun onProgressUpdate(values: Array<Any>) {
-                // Not used.
-            }
-        }.execute()
+        scope.launch {
+            scanAndReport(appContext)
+        }
     }
 
+    /**
+     * Blocking work: a binder call to `ActivityManager` plus `SharedPreferences` I/O.
+     * Only ever called from [scope]'s IO dispatcher, behind [report]'s API-level guard.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun scanAndReport(context: Context) {
         try {
             val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

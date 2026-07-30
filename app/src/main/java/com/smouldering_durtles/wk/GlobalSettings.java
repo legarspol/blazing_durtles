@@ -680,6 +680,13 @@ public final class GlobalSettings {
      */
     public static final class Diagnostics {
         /**
+         * Preference key for the exit-report dedupe watermark. Named once here since it is
+         * read and written from separate methods, where a typo would silently reset the
+         * watermark and re-report every historical exit on each app start.
+         */
+        private static final String KEY_LAST_REPORTED_EXIT_TIMESTAMP = "last_reported_exit_timestamp";
+
+        /**
          * Private constructor.
          */
         private Diagnostics() {
@@ -756,7 +763,7 @@ public final class GlobalSettings {
          * @return the timestamp, or 0 if nothing has been reported yet
          */
         public static long getLastReportedExitTimestamp() {
-            return prefs().getLong("last_reported_exit_timestamp", 0);
+            return prefs().getLong(KEY_LAST_REPORTED_EXIT_TIMESTAMP, 0);
         }
 
         /**
@@ -767,7 +774,7 @@ public final class GlobalSettings {
          */
         public static void setLastReportedExitTimestamp(final long value) {
             final SharedPreferences.Editor editor = prefs().edit();
-            editor.putLong("last_reported_exit_timestamp", value);
+            editor.putLong(KEY_LAST_REPORTED_EXIT_TIMESTAMP, value);
             editor.apply();
         }
     }
