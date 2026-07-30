@@ -55,61 +55,109 @@
                 style="@style/WK.Switch.Normal"
                 android:text="Test mode"/>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Anki mode: marks the first Correct on a fresh item as incorrect."
+                style="@style/WK.TextView.Normal"/>
+
             <Button
                 android:id="@+id/downloadPitchInfoButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Download pitch info"
+                android:text="Download pitch info (Weblio, max 250)"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Destructive/long-running: scrapes missing pitch-info files in the background. Tap again to stop. Logcat only."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/generatePitchInfoButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Generate pitch info"
+                android:text="Rebuild pitch info map"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Destructive: parses cached Weblio files and overwrites the saved pitch-info map."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/checkPitchInfoButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Check pitch info"
+                android:text="Audit missing pitch info"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logs every subject with no pitch info. Read-only, Logcat only."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/testButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Test"
+                android:text="Open digraph help"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Scratch button: opens DigraphHelpActivity."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/testButton2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Test 2"
+                android:text="Open no-API-key help"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Scratch button: opens NoApiKeyHelpActivity."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/crashButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Test Crash"
+                android:text="Force a crash"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Destructive: throws an uncaught exception. The app will die — checks Crashlytics fatals."
+                style="@style/WK.TextView.Normal"/>
 
             <Button
                 android:id="@+id/caughtExceptionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Test Caught Exception"
+                android:text="Log a non-fatal exception"
                 style="@style/WK.Button.Normal"
                 tools:ignore="UnusedIds"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reports a handled exception. Toast says recorded or dropped (consent-dependent)."
+                style="@style/WK.TextView.Normal"/>
 
             <TextView
                 android:id="@+id/document"
