@@ -1,5 +1,6 @@
 package com.smouldering_durtles.wk.diagnostics
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -91,5 +92,18 @@ object Diagnostics {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to record event $name", e)
         }
+    }
+
+    /**
+     * Scan `ActivityManager.getHistoricalProcessExitReasons()` in the background and
+     * report the interesting exits (ANRs, low-memory kills, the memory limiter, ...) as
+     * Crashlytics non-fatals. A no-op below API 30 or without crash-reporting consent;
+     * see [ExitInfoReporter] for the full gating and dedupe behaviour.
+     *
+     * @param context used to obtain the `ActivityManager`
+     */
+    @JvmStatic
+    fun reportHistoricalExits(context: Context) {
+        ExitInfoReporter.report(context)
     }
 }
