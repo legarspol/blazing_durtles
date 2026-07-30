@@ -36,7 +36,32 @@ Two Gradle modules — **`:core`** (pure Kotlin/JVM, no Android SDK) and **`:app
 
 - **`:core`** holds the `…/domain` layer. Framework-freedom is **compiler-enforced**: with no Android SDK on the classpath, `Context`/`View`/resources/`android.*` won't resolve. Prefer `kotlinx-datetime` over `java.time`. Platform needs sit behind interfaces implemented in `:app`. DI is plain constructor `@Inject` (`javax.inject`), wired by the `:app` Hilt graph — no Hilt/Dagger processor here. `:core` is the seam a later KMP split extracts through, so that split is mostly mechanical.
 - **`:app`** holds everything Android: `…/ui` (Compose + ViewModels), `…/platform` (widget, notifications, alarms, background workers, `Context`), the still-legacy Java, and — for now — the `…/data` package (Room/Ktor). Data keeps framework-freedom by *convention*; promoting it to its own module is deferred until its shape settles.
-- **god-objects → injected services.** The static singletons (`WkApplication.getInstance()`, `GlobalSettings` statics, `WebClient.getInstance()`, the `Session` singleton) become injected dependencies — the precondition for pulling domain out of the framework and into `:core`.
+- **god-objects → injected collaborators.** The static singletons (`WkApplication.getInstance()`, `GlobalSettings` statics, `WebClient.getInstance()`, the `Session` singleton) become injected dependencies — the precondition for pulling domain out of the framework and into `:core`.
+
+## Layer vocabulary (what each kind of class is allowed to be)
+
+"Service" is the vaguest word available and this codebase already spends it on something else — every existing `*Service` (`ApiTaskService`, `JobRunnerService`, `JobIntentService`) is an `android.app.Service`, and those go to `…/platform`. So the roles below are named precisely, and **"Service" is not one of them**. Name a class for what it does.
+
+| Role | Lives in | May depend on | Definition |
+|---|---|---|---|
+| **DAO** | `…/data` | Room only | One table's SQL. Room-generated `@Query`/`@Insert`. No mapping, no business rules, no JSON, no Android. |
+| **Repository** | impl in `…/data`; interface in `…/domain` **only when domain reads it** | DAOs, network clients, DataStore | The persistence seam. Hides Room/Ktor/DataStore from its callers and answers questions in their terms. One per aggregate, not one per table. |
+| **Settings object** | `…/data` | DataStore | A per-feature slice of what was `GlobalSettings` — typed accessors over DataStore. Same role as a repository; named `*Settings` because that reads better. Same interface rule: a domain-side interface only if domain reads it. |
+| **Domain class** | `…/domain` (`:core`) | other domain classes | Entities, value objects, and **pure logic with no I/O** — `QuestionSelector`, SRS scheduling, answer grading, availability rules. Testable with no mocks and no emulator. The default home for anything interesting. |
+| **Coordinator** | `…/data` | repositories, network clients, mappers | Orchestration that genuinely spans several repositories or the API — e.g. `SubjectSynchronizer` (fetch → map → write through). Only when the coordination itself is the work; not a dumping ground for what doesn't fit elsewhere. |
+| **ViewModel** | `…/ui` | repositories, domain classes | Screen state as `StateFlow`. No SQL, no HTTP, no mapping. |
+
+Four rules that keep this honest:
+
+- **Pure logic never lives in a coordinator.** If a method has no I/O, it belongs in `…/domain` where it can be unit-tested. This is exactly what `SubjectSyncDao` got wrong — availability rules buried in a class that also does SQL and JSON.
+- **No blanket use-case layer.** Introduce a use-case class when one named operation has real orchestration to justify it, never one per screen action. A layer of one-method classes wrapping single repository calls is the "manufactured indirection" the decomposition rule below warns against.
+- **A domain-side interface only when domain actually reads it.** Not everything persisted is a domain concern. Of the 17 `GlobalSettings` groups, roughly half — `Display`, `Dashboard`, `SubjectInfo`, `Font`, `Keyboard`, `Tutorials`, `UiConfirmations` — are pure presentation that `:core` will never call; a ViewModel or Composable reads those straight from the `…/data` settings object. `Api` and `Diagnostics` are consumed by the data and platform layers themselves. Only the session-shaping groups (`Review`, `AdvancedLesson`, `AdvancedReview`, `AdvancedSelfStudy`) feed the engine that Phase 3 extracts into `:core`, and those need the interface because `:core` has no DataStore on its classpath. Putting the rest behind a domain interface would leave `:core` carrying interfaces nothing in it ever calls.
+- **Domain interfaces are shaped by their consumer, not by the storage layout.** If the session engine reads six values spread across `Review` and the three `Advanced*` groups, that is *one* `SessionPreferences` in `…/domain` with six properties — not four interfaces mirroring the settings groups. The grouping is a storage and settings-screen convenience; the domain should not inherit it.
+
+**Repositories expose domain types — eventually.** The target is that repository interfaces sit in `:core/…/domain` and speak in domain types, with the mapping done by their `…/data` implementations. That is forced rather than chosen: `:core` has no Room or Ktor on its classpath, so an interface there *cannot* mention a Room entity. But the domain model does not exist yet (Phase 3 builds it), so the trajectory is:
+
+- **Phase 2** — repositories may live wholly in `…/data` and return Room entities/DTOs. Inventing a domain model now, ahead of the phase that designs it, would be guesswork.
+- **Phase 3** — as domain types appear, the *interface* moves to `…/domain` and starts speaking in them; the implementation stays in `…/data` and absorbs the mapping. `Subject`'s decomposition (138 methods → thin entity + value objects) is what makes this affordable.
 
 ## Decomposition as a general rule (smaller classes → smaller tickets)
 
@@ -86,7 +111,7 @@ Stand up the toolchain without moving logic: add Kotlin, Hilt, Compose, Coroutin
 Remove genuinely unused classes; delete the **40 Room migrations + `DatabaseMigrationTest`** (fresh install → recreate v68 schema only); **delete `welcome.gif`, the `AboutActivity` GIF display, Glide, and glide-transformations**; trim dead defensive scaffolding where safe. Verify: builds, runs, review/lesson smoke path intact.
 
 ### Phase 2 — Data layer → Kotlin (clean packages)
-Port, tests-first: **DTOs** (Jackson→kotlinx.serialization, incl. custom `PitchInfo`/`WaniKaniApiDate` serializers), **Room entities + DAOs** (Java→Kotlin, suspend/Flow, **flipping Room from `annotationProcessor` to KSP in the same change** — see Phase 0), **REST networking** (`HttpsURLConnection`→Ktor), **preferences storage** (SharedPreferences→DataStore, one-time read-through migration). **DECOMPOSE `SubjectSyncDao`** (`docs/AUDIT.md` §7): lean `@Dao` (its 12 real `@Query`s) + a `SubjectSyncService` for mapping/JSON/sync/availability. Apply the general decomposition rule to every class touched here. *(Burn/resurrect scraping is explicitly out of this phase — see Deferred.)*
+Port, tests-first: **DTOs** (Jackson→kotlinx.serialization, incl. custom `PitchInfo`/`WaniKaniApiDate` serializers), **Room entities + DAOs** (Java→Kotlin, suspend/Flow, **flipping Room from `annotationProcessor` to KSP in the same change** — see Phase 0), **REST networking** (`HttpsURLConnection`→Ktor), **preferences storage** (SharedPreferences→DataStore, one-time read-through migration). **DECOMPOSE `SubjectSyncDao`** into the **four** targets `docs/AUDIT.md` §7 assigns it, not one replacement class: the lean `@Dao` (its 12 real `@Query`s), DTO mapping + sync orchestration (`SubjectSynchronizer`), JSON (**the serialization layer**, not the synchronizer), and availability business rules (**pure, tested scheduling logic** in `:core`, not SQL glue and not the synchronizer). Bundling all four into a single `SubjectSyncService` would be a rename rather than a decomposition — a 948-line god-object replaced by a smaller one. Apply the general decomposition rule to every class touched here. *(Burn/resurrect scraping is explicitly out of this phase — see Deferred.)*
 
 Three constraints that shape how this phase is split (tickets #54–#62):
 

@@ -186,9 +186,9 @@ Not a DAO. It is a sync service wearing a DAO's clothes:
 | Concern | Evidence | Target |
 |---|---|---|
 | Real data access | the 12 `@Query` methods | keep as a lean Room-KMP `@Dao` |
-| DTO mapping | `tryUpdateAssignment`, `insertOrUpdateStudyMaterial`, `insertOrUpdateReviewStatistic` (imports `api.model`) | `SubjectSyncService` (commonMain) |
+| DTO mapping | `tryUpdateAssignment`, `insertOrUpdateStudyMaterial`, `insertOrUpdateReviewStatistic` (imports `api.model`) | `SubjectSynchronizer` (`…/data`) |
 | JSON | `serializeToJsonString` (imports Jackson) | serialization layer (kotlinx) |
-| Sync orchestration | `insertOrUpdate`, `patchAssignment`, `patchReviewStatistic` | `SubjectSyncService` |
+| Sync orchestration | `insertOrUpdate`, `patchAssignment`, `patchReviewStatistic` | `SubjectSynchronizer` (`…/data`) |
 | Availability business rules | `forceLessonAvailable`, `forceReviewAvailable`, `getPendingReviewItemsHelper` | pure scheduling logic (**tested**), not SQL glue |
 
 Also imports `android.database.sqlite` and `livedata` — a DAO should know about neither.
