@@ -39,6 +39,11 @@ Not in the stack: SQLDelight, Koin, Retrofit, Moshi, Gson, RxJava, Compose Multi
   - `…/ui` — Jetpack Compose screens + ViewModels.
   - `…/platform` — everything Android-specific: widget, notifications, alarms, WorkManager, `Context`.
   - `…/di` — Hilt modules and qualifiers only. Nothing with behaviour lives here.
+- **Layer vocabulary** (full table in `docs/MIGRATION_PLAN.md`). **Do not name a class `*Service`** — in this codebase that already means `android.app.Service`, and it is the suffix god-objects grow under. Name it for what it does.
+  - **DAO** (`data`) — one table's SQL, nothing else. **Repository** / **`*Settings` object** (impl in `data`) — the persistence seam; hides Room/Ktor/DataStore from callers. **Domain class** (`domain`) — entities, value objects, and pure logic with no I/O; the default home for anything interesting. **Coordinator** (`data`) — orchestration genuinely spanning repositories or the API. **ViewModel** (`ui`) — `StateFlow` state, no SQL/HTTP/mapping.
+  - Pure logic never lives in a coordinator — no I/O means it belongs in `domain`, where it is testable without mocks or an emulator. No blanket use-case layer; add one only when a single operation has real orchestration to justify it.
+  - **A domain-side interface only when domain actually reads it.** Roughly half the settings groups are pure presentation (`Display`, `Dashboard`, `Font`, `Keyboard`, …) and are read directly from `data` by the UI; only the session-shaping ones reach `:core`. And such interfaces are shaped by the consumer, not by the storage layout — one `SessionPreferences` with the values the engine needs, not one interface per settings group.
+  - Repositories return Room entities/DTOs in Phase 2 and move to domain types in Phase 3, as the domain model comes into existence. `:core` has no Room on its classpath, so a `domain` interface *cannot* mention a Room entity.
 - Build config (`:app`): `compileSdk 37`, `minSdk 23`, `targetSdk 37`, namespace `com.smouldering_durtles.wk`. (`minSdk` was 21; Firebase BOM 33+ declares `minSdk 23` across every SDK, so Crashlytics/Analytics forced the bump.)
 - **All dependency versions live in `gradle/libs.versions.toml`** — declare new ones there and reference them as `libs.*`. Never inline a version string in a build script.
 
