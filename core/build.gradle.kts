@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    // Needed for the `api` configuration below — the Kotlin JVM plugin only applies `java`.
+    `java-library`
 }
 
 // compileJava has no sources here, but it still inherits the Gradle JVM and Kotlin
@@ -20,7 +22,14 @@ kotlin {
 
 dependencies {
     implementation(libs.javax.inject)
-    implementation(libs.kotlinx.datetime)
+
+    // `api`, not `implementation`: domain types expose Flow/StateFlow, suspend functions and
+    // Instant/LocalDateTime in their public signatures, so :app needs both on its compile
+    // classpath to consume them. (:app gets coroutines transitively from androidx lifecycle
+    // today — do not rely on that.)
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.datetime)
 
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

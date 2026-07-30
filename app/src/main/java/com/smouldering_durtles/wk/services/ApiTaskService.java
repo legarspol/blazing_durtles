@@ -17,16 +17,21 @@
 package com.smouldering_durtles.wk.services;
 
 import android.content.Intent;
+import android.os.Bundle;
 
 import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.WkApplication;
 import com.smouldering_durtles.wk.db.AppDatabase;
 import com.smouldering_durtles.wk.db.model.TaskDefinition;
+import com.smouldering_durtles.wk.diagnostics.DiagnosticEvents;
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.jobs.TickJob;
 import com.smouldering_durtles.wk.livedata.LiveFirstTimeSetup;
 import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.services.JobIntentService;
 import com.smouldering_durtles.wk.tasks.ApiTask;
+import com.smouldering_durtles.wk.tasks.ApiTaskType;
+import com.smouldering_durtles.wk.util.Logger;
 
 import java.util.Collection;
 
@@ -49,6 +54,8 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
  * </p>
  */
 public final class ApiTaskService extends JobIntentService {
+    private static final Logger LOGGER = Logger.get(ApiTaskService.class);
+
     /**
      * A single dummy object to synchronize on, to make sure the background sync doesn't
      * overlap with this.
@@ -64,7 +71,7 @@ public final class ApiTaskService extends JobIntentService {
         enqueueWork(WkApplication.getInstance(), ApiTaskService.class, API_TASK_SERVICE_JOB_ID, intent);
     }
 
-    private static void runTasksImpl() throws Exception {
+    private static void runTasksImpl() {
         final AppDatabase db = WkApplication.getDatabase();
         while (db.hasPendingApiTasks()) {
             //noinspection SynchronizationOnStaticField
@@ -74,21 +81,24 @@ public final class ApiTaskService extends JobIntentService {
                     break;
                 }
 
-                final @Nullable Class<? extends ApiTask> clas = taskDefinition.getTaskClass();
-                if (clas == null) {
+                final @Nullable ApiTaskType taskType = ApiTaskType.fromKey(taskDefinition.getTaskClass());
+                if (taskType == null) {
+                    // The stored key doesn't map to any task type we know about, so this task can
+                    // never run. Deleting it is the only way to make progress - the loop is driven
+                    // by the total row count - but it destroys queued user work, so make sure that
+                    // never happens quietly.
+                    reportDroppedTask(taskDefinition);
                     db.taskDefinitionDao().deleteTaskDefinition(taskDefinition);
+                    continue;
                 }
-                else {
-                    final ApiTask apiTask = taskDefinition.getTaskClass()
-                            .getConstructor(TaskDefinition.class)
-                            .newInstance(taskDefinition);
 
-                    if (!apiTask.canRun()) {
-                        break;
-                    }
+                final ApiTask apiTask = taskType.create(taskDefinition);
 
-                    apiTask.run();
+                if (!apiTask.canRun()) {
+                    break;
                 }
+
+                apiTask.run();
             }
         }
         if (db.taskDefinitionDao().getApiCount() == 0) {
@@ -117,6 +127,38 @@ public final class ApiTaskService extends JobIntentService {
                 }
             }
         }
+    }
+
+    /**
+     * Report a task that is about to be discarded because its stored type key can't be resolved.
+     *
+     * <p>
+     *     The task queue holds real user work, so losing an entry is worth a non-fatal report.
+     *     The full payload goes to the local log only: it stays on the device where the in-app log
+     *     viewer can show the user what was lost. The payload can hold the user's own content
+     *     (meaning notes, synonyms), so the remote reports get metadata only.
+     * </p>
+     *
+     * @param taskDefinition the task about to be deleted
+     */
+    private static void reportDroppedTask(final TaskDefinition taskDefinition) {
+        final @Nullable String taskKey = taskDefinition.getTaskClass();
+        final String key = taskKey == null ? "<null>" : taskKey;
+        final @Nullable String data = taskDefinition.getData();
+        final int dataLength = data == null ? 0 : data.length();
+        final IllegalStateException e = new IllegalStateException("Unresolvable API task: " + key);
+
+        LOGGER.error(e, "Dropped unresolvable API task id=%d key=%s priority=%d data=%s",
+                taskDefinition.getId(), key, taskDefinition.getPriority(), data);
+
+        Diagnostics.logException(e, "Dropped unresolvable API task id=" + taskDefinition.getId()
+                + " priority=" + taskDefinition.getPriority()
+                + " dataLength=" + dataLength);
+
+        final Bundle params = new Bundle();
+        params.putString(DiagnosticEvents.PARAM_TASK_KEY, key);
+        params.putLong(DiagnosticEvents.PARAM_PRIORITY, taskDefinition.getPriority());
+        Diagnostics.logEvent(DiagnosticEvents.API_TASK_DROPPED, params);
     }
 
     /**

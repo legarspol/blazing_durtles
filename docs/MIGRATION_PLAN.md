@@ -105,7 +105,7 @@ OkHttp→Ktor · Jackson/Gson→kotlinx.serialization · SharedPreferences/andro
 ## Verification
 
 - **Per unit:** characterization tests written first, kept green across the port (`./gradlew test`).
-- **Per phase:** app builds (Java/Kotlin interop) and the review + lesson end-to-end flow runs — drive it via the `/run` skill (build, launch, exercise a session), not just tests.
+- **Per phase:** app builds (Java/Kotlin interop) and the review + lesson end-to-end flow runs — build, install and exercise a session on a device or emulator (`android run --device=<serial> --apks=app/build/outputs/apk/debug/app-debug.apk`), not just tests.
 - **Regression watch:** answer-grading (`FuzzyMatching`) and SRS scheduling (`SrsSystem`) get explicit before/after test parity — no UI tell when they silently break.
 - **Crash-fast + telemetry check:** an induced exception in ported code surfaces in Crashlytics (not swallowed); key analytics events fire on session/sync/burn-resurrect.
 

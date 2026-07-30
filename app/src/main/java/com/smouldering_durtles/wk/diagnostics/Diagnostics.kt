@@ -1,6 +1,7 @@
 package com.smouldering_durtles.wk.diagnostics
 
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -69,6 +70,27 @@ object Diagnostics {
             crashlytics.recordException(throwable)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to record exception", e)
+        }
+    }
+
+    /**
+     * Record an analytics event. A no-op unless the user has consented to analytics. Never throws —
+     * telemetry must not be able to break the flow that reports it.
+     *
+     * @param name the event name, see [DiagnosticEvents]
+     * @param params optional event parameters, keys as in [DiagnosticEvents]
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun logEvent(name: String, params: Bundle? = null) {
+        try {
+            if (!GlobalSettings.Diagnostics.getConsentRequested()
+                || !GlobalSettings.Diagnostics.isAnalyticsEnabled()) {
+                return
+            }
+            FirebaseAnalytics.getInstance(WkApplication.getInstance()).logEvent(name, params)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to record event $name", e)
         }
     }
 

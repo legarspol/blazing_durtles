@@ -6,13 +6,17 @@
 [versions]
 # Build toolchain
 agp = "9.2.1"
-kotlin = "2.0.21"          # AGP 9 built-in Kotlin; also the Compose Compiler plugin version
+kotlin = "2.0.21"          # AGP 9 built-in Kotlin; also the Compose Compiler + serialization plugin version
 hilt = "2.60.1"
 ksp = "2.0.21-1.0.25"
+googleServices = "4.5.0"
+firebaseCrashlyticsPlugin = "3.0.7"
 
 # :core — pure Kotlin/JVM
 javaxInject = "1"
 kotlinxDatetime = "0.6.1"
+# 1.9.x is the last line built against Kotlin 2.0; 1.10+ pulls a 2.1 stdlib.
+kotlinxCoroutines = "1.9.0"
 
 # AndroidX — UI / lifecycle (legacy View stack, slated for Compose in Phase 4)
 activity = "1.6.0"
@@ -31,6 +35,7 @@ composeBom = "2024.09.03"
 room = "2.6.1"
 work = "2.9.0"
 securityCrypto = "1.1.0-alpha06"
+datastore = "1.1.1"
 
 # Third-party (several are migration targets — see review doc)
 desugarJdkLibs = "2.0.4"
@@ -40,6 +45,13 @@ okhttp = "5.0.0-alpha.6"
 jsoup = "1.16.1"
 lottie = "5.0.3"
 pikolo = "2.0.2"
+
+# Migration targets — replacing Jackson/OkHttp/SharedPreferences (Phase 2)
+kotlinxSerialization = "1.7.3"
+ktor = "2.3.12"
+
+# Firebase (individual library versions come from the BOM)
+firebaseBom = "34.15.0"
 
 # Test
 junit = "4.13.2"
@@ -70,6 +82,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
 # Third-party
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
@@ -83,9 +96,23 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 pikolo = { module = "com.github.madrapps:pikolo", version.ref = "pikolo" }
 
+# Migration targets — Ktor + kotlinx.serialization (Phase 2)
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+# Firebase — versions supplied by the BOM (imported as a platform in :app)
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+
 # :core — pure Kotlin/JVM
 javax-inject = { module = "javax.inject:javax.inject", version.ref = "javaxInject" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 # Test
@@ -102,3 +129,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
