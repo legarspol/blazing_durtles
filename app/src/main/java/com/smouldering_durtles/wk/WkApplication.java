@@ -195,7 +195,6 @@ public class WkApplication extends Application {
     private void onCreateLocal() {
         initialize(this);
         Diagnostics.applyConsentState();
-        Diagnostics.reportHistoricalExits(this);
         new Task().execute();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
