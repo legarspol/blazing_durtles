@@ -34,10 +34,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -60,10 +60,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "name"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -440,10 +440,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [
           {
@@ -452,6 +452,7 @@
             "columnNames": [
               "level"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_level` ON `${TABLE_NAME}` (`level`)"
           },
           {
@@ -460,6 +461,7 @@
             "columnNames": [
               "characters"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_characters` ON `${TABLE_NAME}` (`characters`)"
           },
           {
@@ -468,6 +470,7 @@
             "columnNames": [
               "availableAt"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_availableAt` ON `${TABLE_NAME}` (`availableAt`)"
           },
           {
@@ -476,6 +479,7 @@
             "columnNames": [
               "burnedAt"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_burnedAt` ON `${TABLE_NAME}` (`burnedAt`)"
           },
           {
@@ -484,6 +488,7 @@
             "columnNames": [
               "startedAt"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_startedAt` ON `${TABLE_NAME}` (`startedAt`)"
           },
           {
@@ -492,6 +497,7 @@
             "columnNames": [
               "unlockedAt"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_unlockedAt` ON `${TABLE_NAME}` (`unlockedAt`)"
           },
           {
@@ -500,6 +506,7 @@
             "columnNames": [
               "srsStage"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_subject_srsStage` ON `${TABLE_NAME}` (`srsStage`)"
           }
         ],
@@ -559,10 +566,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -621,10 +628,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -755,10 +762,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -799,10 +806,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -849,10 +856,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "level"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -881,10 +888,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "name"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
