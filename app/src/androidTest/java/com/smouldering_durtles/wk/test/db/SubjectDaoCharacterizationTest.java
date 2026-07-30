@@ -16,7 +16,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,31 +54,79 @@ public class SubjectDaoCharacterizationTest {
         db.close();
     }
 
+    /** Filler for {@code lastIncorrectAnswer}: distinct, and low enough that an update to a larger
+     *  value still passes the monotonic guard on {@code updateLastIncorrectAnswer}. */
+    private static final long LAST_INCORRECT_ANSWER_FILLER = 100L;
+
     /**
-     * Insert a subject row directly, filling every NOT NULL column with a zero value and letting the
-     * caller override what the query under test actually looks at.
+     * Distinct filler values for the NOT NULL columns.
+     *
+     * <p>Deliberately <b>not</b> all zero. If every column holds 0, a column/value misalignment —
+     * the exact hazard in {@code SubjectSyncDao}'s long positional INSERTs, and the thing #64 has to
+     * avoid when it removes columns — reads back as {@code 0 == 0} and the test passes anyway.
+     * Distinct values make a shift show up as a wrong value.</p>
+     *
+     * <p>Numbering starts at 11, above the small numbers the tests themselves use for levels, star
+     * ratings and lesson positions, so a filler value leaking into an assertion is obvious rather
+     * than plausible.</p>
+     *
+     * <p>The three {@code *Patched} flags are pinned to 0 on purpose: {@code SubjectViewsDao} queries
+     * them as bare truth tests ({@code WHERE assignmentPatched}), so any nonzero filler would make
+     * every row look patched and those tests would assert nothing.</p>
+     */
+    private static final Map<String, Integer> FILLER = buildFiller();
+
+    private static Map<String, Integer> buildFiller() {
+        final Map<String, Integer> filler = new LinkedHashMap<>();
+        int next = 11;
+        for (final String column : Arrays.asList(
+                "typeCode", "lessonPosition", "srsSystemId", "level", "audioDownloadStatus",
+                "assignmentId", "passed", "resurrected", "srsStage", "levelProgressScore",
+                "studyMaterialId", "reviewStatisticId",
+                "meaningCorrect", "meaningIncorrect", "meaningMaxStreak", "meaningCurrentStreak",
+                "readingCorrect", "readingIncorrect", "readingMaxStreak", "readingCurrentStreak",
+                "percentageCorrect", "leechScore", "frequency", "joyoGrade", "jlptLevel")) {
+            filler.put(column, next++);
+        }
+        filler.put("assignmentPatched", 0);
+        filler.put("studyMaterialPatched", 0);
+        filler.put("statisticPatched", 0);
+        return filler;
+    }
+
+    /**
+     * Insert a subject row directly, filling every NOT NULL column with its distinct {@link #FILLER}
+     * value and letting the caller override whatever the query under test actually looks at.
      */
     private void insertSubject(final long id, final ContentValues overrides) {
         final ContentValues values = new ContentValues();
         values.put("id", id);
-        for (final String column : Arrays.asList(
-                "typeCode", "lessonPosition", "srsSystemId", "level", "audioDownloadStatus",
-                "assignmentId", "passed", "resurrected", "srsStage", "levelProgressScore",
-                "assignmentPatched", "studyMaterialId", "studyMaterialPatched", "reviewStatisticId",
-                "meaningCorrect", "meaningIncorrect", "meaningMaxStreak", "meaningCurrentStreak",
-                "readingCorrect", "readingIncorrect", "readingMaxStreak", "readingCurrentStreak",
-                "percentageCorrect", "leechScore", "statisticPatched", "frequency", "joyoGrade",
-                "jlptLevel")) {
-            values.put(column, 0);
+        for (final Map.Entry<String, Integer> entry : FILLER.entrySet()) {
+            values.put(entry.getKey(), entry.getValue());
         }
-        // Columns the queries filter on that are nullable, so not covered by the loop above.
+        // Nullable columns the queries filter on, so not part of the NOT NULL filler above. Both are
+        // semantically zero rather than arbitrary: hiddenAt = 0 means visible, and
+        // updateLastIncorrectAnswer's guard compares against lastIncorrectAnswer, which must not be
+        // NULL for that update to fire at all.
         values.put("object", "kanji");
         values.put("hiddenAt", 0L);
-        // Nullable in the schema, but the entity defaults it to 0 — and the guard on
-        // updateLastIncorrectAnswer compares against it, so NULL would make that update a no-op.
-        values.put("lastIncorrectAnswer", 0L);
+        values.put("lastIncorrectAnswer", LAST_INCORRECT_ANSWER_FILLER);
         values.putAll(overrides);
         db.getOpenHelper().getWritableDatabase().insert("subject", 0, values);
+    }
+
+    /** Every NOT NULL column still holds its filler, i.e. nothing shifted during the write. */
+    private void assertFillerIntact(final long id, final String... exceptColumns) {
+        final List<String> excluded = Arrays.asList(exceptColumns);
+        for (final Map.Entry<String, Integer> entry : FILLER.entrySet()) {
+            if (excluded.contains(entry.getKey())) {
+                continue;
+            }
+            assertEquals(
+                    "column " + entry.getKey() + " does not hold its filler value",
+                    entry.getValue().longValue(),
+                    readLongColumn(id, entry.getKey()));
+        }
     }
 
     /**
@@ -146,7 +196,9 @@ public class SubjectDaoCharacterizationTest {
         db.subjectDao().updateLastIncorrectAnswer(1L, 555L);
 
         assertEquals(555L, readLongColumn(1L, "lastIncorrectAnswer"));
-        assertEquals(0L, readLongColumn(2L, "lastIncorrectAnswer"));
+        assertEquals(LAST_INCORRECT_ANSWER_FILLER, readLongColumn(2L, "lastIncorrectAnswer"));
+        // A targeted UPDATE must not disturb any other column on the row it does touch.
+        assertFillerIntact(1L);
     }
 
     @Test
@@ -167,6 +219,13 @@ public class SubjectDaoCharacterizationTest {
         // so the guarded update silently does nothing. The entity defaults the field to 0 so this
         // should not arise in practice — recorded because it is latent, and because a port that
         // made the column NOT NULL would change this behaviour while the schema hash caught it.
+        // Positional INSERT, so the values ascend consecutively with no zeros: if the column list and
+        // the VALUES list ever drift out of step, the readbacks below land on the wrong column and
+        // say so, instead of matching 0 against 0. Unlike the ContentValues helper above, the
+        // *Patched flags need no special casing here — this test runs no patched-view query, so
+        // they are free to carry distinct values like everything else. Same for hiddenAt: it is 0
+        // ("visible") in the ContentValues helper because most queries filter on it, but nothing
+        // here does, so it too carries a distinct value rather than being a blind spot.
         db.getOpenHelper().getWritableDatabase().execSQL(
                 "INSERT INTO subject (id, object, hiddenAt, lastIncorrectAnswer, typeCode,"
                         + " lessonPosition, srsSystemId, level, audioDownloadStatus, assignmentId,"
@@ -176,8 +235,8 @@ public class SubjectDaoCharacterizationTest {
                         + " readingIncorrect, readingMaxStreak, readingCurrentStreak,"
                         + " percentageCorrect, leechScore, statisticPatched, frequency, joyoGrade,"
                         + " jlptLevel)"
-                        + " VALUES (77, 'kanji', 0, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,"
-                        + " 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)");
+                        + " VALUES (77, 'kanji', 19, NULL, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,"
+                        + " 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48)");
 
         db.subjectDao().updateLastIncorrectAnswer(77L, 555L);
 
@@ -186,6 +245,16 @@ public class SubjectDaoCharacterizationTest {
             assertTrue(cursor.moveToFirst());
             assertEquals("the guarded update should not have touched a NULL", 1, cursor.getInt(0));
         }
+        // Check the alignment of the row this test just hand-wrote: both ends, and the three flag
+        // columns that a one-place shift would most easily hide in.
+        assertEquals(19L, readLongColumn(77L, "hiddenAt"));
+        assertEquals(21L, readLongColumn(77L, "typeCode"));
+        assertEquals(30L, readLongColumn(77L, "levelProgressScore"));
+        assertEquals(31L, readLongColumn(77L, "assignmentPatched"));
+        assertEquals(32L, readLongColumn(77L, "studyMaterialId"));
+        assertEquals(33L, readLongColumn(77L, "studyMaterialPatched"));
+        assertEquals(45L, readLongColumn(77L, "statisticPatched"));
+        assertEquals(48L, readLongColumn(77L, "jlptLevel"));
     }
 
     @Test
@@ -301,7 +370,9 @@ public class SubjectDaoCharacterizationTest {
         assertEquals(Arrays.asList(1L), db.subjectCollectionsDao().getStarredSubjectIds(3));
         assertTrue(db.subjectCollectionsDao().getStarredSubjectIds(5).isEmpty());
         assertEquals(3L, readLongColumn(1L, "typeCode"));
-        assertEquals(0L, readLongColumn(2L, "typeCode"));
+        assertEquals(FILLER.get("typeCode").longValue(), readLongColumn(2L, "typeCode"));
+        // Setting a star rating must not spill into any neighbouring column.
+        assertFillerIntact(1L, "typeCode");
     }
 
     private static List<Long> ids(final List<Subject> subjects) {

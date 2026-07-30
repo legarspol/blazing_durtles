@@ -121,17 +121,48 @@ public class DaoCharacterizationTest {
         // The state column is a bare TEXT column, so a database written by an older app version can
         // legitimately contain "STARTED"/"NEW". Converters coerces those to ACTIVE; this asserts the
         // coercion holds when the value comes out of real SQLite rather than from a direct call.
+        // Positional INSERT, so every numeric value is distinct and consecutive rather than 0: a
+        // column list that drifts out of step with its VALUES list would otherwise still satisfy
+        // 0 == 0. No zeros at all here, including in the boolean *Done slots — nothing in this test
+        // reads them as booleans, and a zero sitting between two other zeros is exactly where a
+        // one-column shift would hide.
         db.getOpenHelper().getWritableDatabase().execSQL(
                 "INSERT INTO session_item (id, assignmentId, state, srsSystemId, srsStage, level,"
                         + " typeCode, bucket, `order`, meaningDone, meaningIncorrect, readingDone,"
                         + " readingIncorrect, onyomiDone, onyomiIncorrect, kunyomiDone,"
                         + " kunyomiIncorrect, numAnswers, lastAnswer)"
-                        + " VALUES (99, 990, 'STARTED', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)");
+                        + " VALUES (99, 990, 'STARTED', 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,"
+                        + " 22, 23, 24, 25, 26)");
 
         final SessionItem loaded = db.sessionItemDao().getById(99L);
 
         assertNotNull(loaded);
         assertEquals(SessionItemState.ACTIVE, loaded.getState());
+        // Confirm the hand-written row landed in the columns it claims to, so the assertion above is
+        // really about the state converter and not about a coincidentally-shifted row.
+        assertEquals(990L, loaded.getAssignmentId());
+        assertEquals(11L, loaded.getSrsSystemId());
+        assertEquals(12L, loaded.getSrsStageId());
+        assertEquals(13, loaded.getLevel());
+        assertEquals(15, loaded.getBucket());
+        assertEquals(16, loaded.getOrder());
+        assertEquals(18, loaded.getQuestion1Incorrect());
+        assertEquals(25, loaded.getNumAnswers());
+        // The four *Done columns are booleans, so the entity getters would report every nonzero value
+        // as simply true and could not tell a shifted 17 from a shifted 19. Read them raw.
+        assertEquals(17L, readSessionItemColumn(99L, "meaningDone"));
+        assertEquals(19L, readSessionItemColumn(99L, "readingDone"));
+        assertEquals(21L, readSessionItemColumn(99L, "onyomiDone"));
+        assertEquals(23L, readSessionItemColumn(99L, "kunyomiDone"));
+    }
+
+    /** Read one raw column off a session_item row, bypassing the entity's type mapping. */
+    private long readSessionItemColumn(final long id, final String column) {
+        try (android.database.Cursor cursor = db.getOpenHelper().getReadableDatabase().query(
+                "SELECT " + column + " FROM session_item WHERE id = " + id)) {
+            assertTrue("no session_item row with id " + id, cursor.moveToFirst());
+            return cursor.getLong(0);
+        }
     }
 
     @Test
