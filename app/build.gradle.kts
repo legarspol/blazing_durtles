@@ -35,12 +35,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testApplicationId = "com.blazingdurtles.android.test"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments["room.schemaLocation"] = "$projectDir/schemas"
-            }
-        }
     }
     buildTypes {
         release {
@@ -106,6 +100,13 @@ kotlin {
     }
 }
 
+ksp {
+    // Room exports app/schemas/…/68.json here, and Room verifies that schema's identityHash against
+    // room_master_table on every open — so losing the export loses the safety net for the whole
+    // data-layer port.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":core"))
 
@@ -113,7 +114,7 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     debugImplementation(libs.androidx.annotation)
 
