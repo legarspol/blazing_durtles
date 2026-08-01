@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package com.smouldering_durtles.wk.api.model;
+package com.smouldering_durtles.wk.api.model
 
-import javax.annotation.Nullable;
+import kotlinx.serialization.Serializable
 
 /**
- * Convenience interface for WK API entities to allow their ID and object to be set
- * outside of the normal ObjectMapper.
+ * Model class for upcoming lessons and reviews for the next 24 hours.
+ *
+ * This isn't used for putting together the timeline or lesson/review sessions. It's only used as
+ * a last resort panic button to fix the app and the WK servers getting out of sync.
  */
-public interface WaniKaniEntity {
-    /**
-     * The unique ID for this entity.
-     *
-     * @param id the ID
-     */
-    void setId(long id);
-
-    /**
-     * The object type for this entity.
-     *
-     * @param object the type
-     */
-    void setObject(@Nullable String object);
-}
+@Serializable
+data class ApiSummary(
+    val lessons: List<ApiSummarySession> = emptyList(),
+    val reviews: List<ApiSummarySession> = emptyList()
+)

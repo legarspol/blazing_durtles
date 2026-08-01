@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-package com.smouldering_durtles.wk.api.model;
+package com.smouldering_durtles.wk.api.model
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Model class used to update a study material record for the API.
+ *
+ * `@JvmOverloads` gives Java callers (`new ApiUpdateStudyMaterial()` in
+ * [com.smouldering_durtles.wk.tasks.SubmitStudyMaterialTask], out of scope for this port) a
+ * visible no-arg constructor. Callers mutate the nested [studyMaterial] through its own setters
+ * rather than replacing it wholesale, so this class doesn't need a setter of its own.
  */
-@SuppressWarnings("unused")
-public final class ApiUpdateStudyMaterial {
-    @JsonProperty("study_material") private ApiStudyMaterial studyMaterial = new ApiStudyMaterial();
-
-    /**
-     * The study material record to update.
-     * @return the value
-     */
-    public ApiStudyMaterial getStudyMaterial() {
-        return studyMaterial;
-    }
-
-    /**
-     * The study material record to update.
-     * @param studyMaterial the value
-     */
-    public void setStudyMaterial(final ApiStudyMaterial studyMaterial) {
-        this.studyMaterial = studyMaterial;
-    }
-}
+@Serializable
+data class ApiUpdateStudyMaterial @JvmOverloads constructor(
+    @SerialName("study_material") val studyMaterial: ApiStudyMaterial = ApiStudyMaterial()
+)

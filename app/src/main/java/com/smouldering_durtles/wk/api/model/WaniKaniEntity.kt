@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-/**
- * This package contains various model objects for API communication.
- * They are not individually documented, but they are just data classes to be mapped to and from JSON.
- */
-@FieldsAreNonnullByDefault
-@LocalVariablesAreNonnullByDefault
-@MethodsAreNonnullByDefault
-@ParametersAreNonnullByDefault
-package com.smouldering_durtles.wk.api.model;
+package com.smouldering_durtles.wk.api.model
 
-import javax.annotation.FieldsAreNonnullByDefault;
-import javax.annotation.LocalVariablesAreNonnullByDefault;
-import javax.annotation.MethodsAreNonnullByDefault;
-import javax.annotation.ParametersAreNonnullByDefault;
+/**
+ * Convenience interface for WK API entities to allow their ID and object to be set
+ * outside of the normal (de)serialization flow.
+ */
+interface WaniKaniEntity {
+    /**
+     * The unique ID for this entity.
+     *
+     * @param id the ID
+     */
+    fun setId(id: Long)
+
+    /**
+     * The object type for this entity.
+     *
+     * @param object the type
+     */
+    fun setObject(`object`: String?)
+}
