@@ -116,8 +116,6 @@ public class WkApplication extends Application {
         database = AppDatabase.getInstance();
         DbLogger.initializeInstance(database);
         encryptedPreferenceDataStore = new EncryptedPreferenceDataStore();
-        encryptedPreferenceDataStore.getString("api_key", null);
-        encryptedPreferenceDataStore.getString("web_password", null);
         GlobalSettings.setApplication(application);
 
         safe(() -> LiveTaskCounts.getInstance().initialize());
