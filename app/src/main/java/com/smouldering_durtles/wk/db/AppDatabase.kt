@@ -72,7 +72,7 @@ import java.util.Locale
         AudioDownloadStatus::class,
         SearchPreset::class
     ],
-    version = 68
+    version = 69
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

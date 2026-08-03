@@ -80,8 +80,8 @@ public class SubjectDaoCharacterizationTest {
         final Map<String, Integer> filler = new LinkedHashMap<>();
         int next = 11;
         for (final String column : Arrays.asList(
-                "typeCode", "lessonPosition", "srsSystemId", "level", "audioDownloadStatus",
-                "assignmentId", "passed", "resurrected", "srsStage", "levelProgressScore",
+                "numStars", "lessonPosition", "srsSystemId", "level",
+                "assignmentId", "srsStage",
                 "studyMaterialId", "reviewStatisticId",
                 "meaningCorrect", "meaningIncorrect", "meaningMaxStreak", "meaningCurrentStreak",
                 "readingCorrect", "readingIncorrect", "readingMaxStreak", "readingCurrentStreak",
@@ -227,16 +227,16 @@ public class SubjectDaoCharacterizationTest {
         // ("visible") in the ContentValues helper because most queries filter on it, but nothing
         // here does, so it too carries a distinct value rather than being a blind spot.
         db.getOpenHelper().getWritableDatabase().execSQL(
-                "INSERT INTO subject (id, object, hiddenAt, lastIncorrectAnswer, typeCode,"
-                        + " lessonPosition, srsSystemId, level, audioDownloadStatus, assignmentId,"
-                        + " passed, resurrected, srsStage, levelProgressScore, assignmentPatched,"
+                "INSERT INTO subject (id, object, hiddenAt, lastIncorrectAnswer, numStars,"
+                        + " lessonPosition, srsSystemId, level, assignmentId,"
+                        + " srsStage, assignmentPatched,"
                         + " studyMaterialId, studyMaterialPatched, reviewStatisticId, meaningCorrect,"
                         + " meaningIncorrect, meaningMaxStreak, meaningCurrentStreak, readingCorrect,"
                         + " readingIncorrect, readingMaxStreak, readingCurrentStreak,"
                         + " percentageCorrect, leechScore, statisticPatched, frequency, joyoGrade,"
                         + " jlptLevel)"
-                        + " VALUES (77, 'kanji', 19, NULL, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,"
-                        + " 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48)");
+                        + " VALUES (77, 'kanji', 19, NULL, 20, 21, 22, 23, 24, 25, 26,"
+                        + " 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43)");
 
         db.subjectDao().updateLastIncorrectAnswer(77L, 555L);
 
@@ -248,13 +248,12 @@ public class SubjectDaoCharacterizationTest {
         // Check the alignment of the row this test just hand-wrote: both ends, and the three flag
         // columns that a one-place shift would most easily hide in.
         assertEquals(19L, readLongColumn(77L, "hiddenAt"));
-        assertEquals(21L, readLongColumn(77L, "typeCode"));
-        assertEquals(30L, readLongColumn(77L, "levelProgressScore"));
-        assertEquals(31L, readLongColumn(77L, "assignmentPatched"));
-        assertEquals(32L, readLongColumn(77L, "studyMaterialId"));
-        assertEquals(33L, readLongColumn(77L, "studyMaterialPatched"));
-        assertEquals(45L, readLongColumn(77L, "statisticPatched"));
-        assertEquals(48L, readLongColumn(77L, "jlptLevel"));
+        assertEquals(20L, readLongColumn(77L, "numStars"));
+        assertEquals(26L, readLongColumn(77L, "assignmentPatched"));
+        assertEquals(27L, readLongColumn(77L, "studyMaterialId"));
+        assertEquals(28L, readLongColumn(77L, "studyMaterialPatched"));
+        assertEquals(40L, readLongColumn(77L, "statisticPatched"));
+        assertEquals(43L, readLongColumn(77L, "jlptLevel"));
     }
 
     @Test
@@ -358,10 +357,12 @@ public class SubjectDaoCharacterizationTest {
     }
 
     @Test
-    public void starRatingsAreStoredInTheTypeCodeColumnThatAlsoEncodesSubjectType() {
-        // updateStars writes "SET typeCode = :numStars" and getStarredSubjectIds reads
-        // "WHERE typeCode = :numStars" — the same column the schema otherwise uses for the subject
-        // type code. This overloading is load-bearing and very easy to "clean up" during a port.
+    public void starRatingsRoundTripThroughTheirOwnColumn() {
+        // updateStars writes "SET numStars = :numStars" and getStarredSubjectIds reads
+        // "WHERE numStars = :numStars". Before #64 both said typeCode, a column retired as the
+        // subject type code and quietly reused for star ratings; the rename gave stars a column
+        // whose name matches its contents. SearchUtil builds the same filter as a raw SQL string,
+        // so it cannot be checked here — see the star-search step in the ticket's device checks.
         insertSubject(1L, new ContentValues());
         insertSubject(2L, new ContentValues());
 
@@ -369,10 +370,10 @@ public class SubjectDaoCharacterizationTest {
 
         assertEquals(Arrays.asList(1L), db.subjectCollectionsDao().getStarredSubjectIds(3));
         assertTrue(db.subjectCollectionsDao().getStarredSubjectIds(5).isEmpty());
-        assertEquals(3L, readLongColumn(1L, "typeCode"));
-        assertEquals(FILLER.get("typeCode").longValue(), readLongColumn(2L, "typeCode"));
+        assertEquals(3L, readLongColumn(1L, "numStars"));
+        assertEquals(FILLER.get("numStars").longValue(), readLongColumn(2L, "numStars"));
         // Setting a star rating must not spill into any neighbouring column.
-        assertFillerIntact(1L, "typeCode");
+        assertFillerIntact(1L, "numStars");
     }
 
     private static List<Long> ids(final List<Subject> subjects) {

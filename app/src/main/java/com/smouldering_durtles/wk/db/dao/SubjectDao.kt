@@ -99,7 +99,7 @@ abstract class SubjectDao {
      * @param id the subject ID
      * @param numStars the new rating
      */
-    @Query("UPDATE subject SET typeCode = :numStars WHERE id = :id")
+    @Query("UPDATE subject SET numStars = :numStars WHERE id = :id")
     protected abstract fun updateStarsHelper(id: Long, numStars: Int)
 
     /**

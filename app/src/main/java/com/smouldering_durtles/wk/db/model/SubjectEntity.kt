@@ -10,12 +10,6 @@ import com.smouldering_durtles.wk.api.model.Reading
 import com.smouldering_durtles.wk.enums.SubjectType
 import com.smouldering_durtles.wk.model.PitchInfo
 
-// Pending changes for a future large-scale database update:
-// - Remove resurrected boolean from assignment data
-// - Remove audioDownloadStatus int
-// - Remove levelProgressScore int
-// - Reuse typeCode int for numStars
-
 /**
  * Room entity for the subject table. This class combines all information about a subject in
  * a single entity for convenience - subject, assignment, review statistics, study materials
@@ -41,13 +35,9 @@ class SubjectEntity {
     var type: SubjectType? = null
 
     /**
-     * The star rating (0-5) given to the subject by the user. This reuses the typeCode database column that
-     * was retired a while ago. On the next 'recreate and clone' style DB migration this will be straightened out.
+     * The star rating (0-5) given to the subject by the user.
      */
-    @JvmField
-    @Suppress("unused")
-    @ColumnInfo(name = "typeCode")
-    var numStars: Int = 0
+    @JvmField var numStars: Int = 0
 
     /**
      * Timestamp when this subject was hidden, or null if it isn't hidden.
@@ -153,13 +143,6 @@ class SubjectEntity {
     @JvmField var pronunciationAudios: String? = null
 
     /**
-     * Unused - to be removed in a future DB change.
-     */
-    @JvmField
-    @ColumnInfo(name = "audioDownloadStatus")
-    var unused3: Int = 0
-
-    /**
      * A concatenation of all searchable text in this subject. Used to speed up searches.
      */
     @JvmField var searchTarget: String? = null
@@ -208,30 +191,9 @@ class SubjectEntity {
     @JvmField var unlockedAt: Long = 0L
 
     /**
-     * True if this subject has passed, i.e. has reached Guru I at some point.
-     */
-    @JvmField
-    @ColumnInfo(name = "passed")
-    var unused5: Boolean = false
-
-    /**
-     * Unused - to be removed in a future DB change.
-     */
-    @JvmField
-    @ColumnInfo(name = "resurrected")
-    var unused2: Boolean = false
-
-    /**
      * The current SRS stage for this subject.
      */
     @JvmField @ColumnInfo(index = true, name = "srsStage") var srsStageId: Long = 0L
-
-    /**
-     * The precomputed score for the level progression bars. Not used anymore.
-     */
-    @JvmField
-    @ColumnInfo(name = "levelProgressScore")
-    var unused4: Int = 0
 
     /**
      * The timestamp when the last incorrect answer was given for this subject.
