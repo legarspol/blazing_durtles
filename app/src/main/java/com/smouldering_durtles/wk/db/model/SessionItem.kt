@@ -43,7 +43,6 @@ class SessionItem {
     var srsSystemId: Long = 0L
     @ColumnInfo(name = "srsStage") var srsStageId: Long = 0L
     var level: Int = 0
-    @ColumnInfo(name = "typeCode") var unused: Int = 0
     var bucket: Int = 0
     var order: Int = 0
 

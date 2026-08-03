@@ -343,7 +343,7 @@ public final class SearchUtil {
                 starRatingFragments.add(rating.toString());
             }
             if (!starRatingFragments.isEmpty()) {
-                sb.append(" AND typeCode IN ");
+                sb.append(" AND numStars IN ");
                 sb.append(join(", ", "(", ")", starRatingFragments));
             }
         }

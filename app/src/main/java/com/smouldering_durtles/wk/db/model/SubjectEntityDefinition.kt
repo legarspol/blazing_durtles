@@ -20,7 +20,6 @@ class SubjectEntityDefinition {
     @ColumnInfo(name = "object")
     var type: SubjectType? = null
 
-    @ColumnInfo(name = "typeCode")
     var numStars: Int = 0
     var hiddenAt: Long? = null
     var lessonPosition: Int = 0
@@ -45,8 +44,6 @@ class SubjectEntityDefinition {
     var contextSentences: String? = null
     var pronunciationAudios: String? = null
 
-    @ColumnInfo(name = "audioDownloadStatus")
-    var unused3: Int = 0
     var searchTarget: String? = null
     var smallSearchTarget: String? = null
     var assignmentId: Long = 0L
@@ -61,16 +58,7 @@ class SubjectEntityDefinition {
 
     @ColumnInfo(index = true) var unlockedAt: Long? = null
 
-    @ColumnInfo(name = "passed")
-    var unused5: Boolean = false
-
-    @ColumnInfo(name = "resurrected")
-    var unused2: Boolean = false
-
     @ColumnInfo(index = true, name = "srsStage") var srsStageId: Long = 0L
-
-    @ColumnInfo(name = "levelProgressScore")
-    var unused4: Int = 0
     var lastIncorrectAnswer: Long? = null
     var assignmentPatched: Boolean = false
     var studyMaterialId: Long = 0L

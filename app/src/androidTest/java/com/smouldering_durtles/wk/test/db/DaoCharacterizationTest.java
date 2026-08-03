@@ -128,11 +128,11 @@ public class DaoCharacterizationTest {
         // one-column shift would hide.
         db.getOpenHelper().getWritableDatabase().execSQL(
                 "INSERT INTO session_item (id, assignmentId, state, srsSystemId, srsStage, level,"
-                        + " typeCode, bucket, `order`, meaningDone, meaningIncorrect, readingDone,"
+                        + " bucket, `order`, meaningDone, meaningIncorrect, readingDone,"
                         + " readingIncorrect, onyomiDone, onyomiIncorrect, kunyomiDone,"
                         + " kunyomiIncorrect, numAnswers, lastAnswer)"
-                        + " VALUES (99, 990, 'STARTED', 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,"
-                        + " 22, 23, 24, 25, 26)");
+                        + " VALUES (99, 990, 'STARTED', 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,"
+                        + " 21, 22, 23, 24, 25)");
 
         final SessionItem loaded = db.sessionItemDao().getById(99L);
 
@@ -144,16 +144,16 @@ public class DaoCharacterizationTest {
         assertEquals(11L, loaded.getSrsSystemId());
         assertEquals(12L, loaded.getSrsStageId());
         assertEquals(13, loaded.getLevel());
-        assertEquals(15, loaded.getBucket());
-        assertEquals(16, loaded.getOrder());
-        assertEquals(18, loaded.getQuestion1Incorrect());
-        assertEquals(25, loaded.getNumAnswers());
+        assertEquals(14, loaded.getBucket());
+        assertEquals(15, loaded.getOrder());
+        assertEquals(17, loaded.getQuestion1Incorrect());
+        assertEquals(24, loaded.getNumAnswers());
         // The four *Done columns are booleans, so the entity getters would report every nonzero value
-        // as simply true and could not tell a shifted 17 from a shifted 19. Read them raw.
-        assertEquals(17L, readSessionItemColumn(99L, "meaningDone"));
-        assertEquals(19L, readSessionItemColumn(99L, "readingDone"));
-        assertEquals(21L, readSessionItemColumn(99L, "onyomiDone"));
-        assertEquals(23L, readSessionItemColumn(99L, "kunyomiDone"));
+        // as simply true and could not tell a shifted 16 from a shifted 18. Read them raw.
+        assertEquals(16L, readSessionItemColumn(99L, "meaningDone"));
+        assertEquals(18L, readSessionItemColumn(99L, "readingDone"));
+        assertEquals(20L, readSessionItemColumn(99L, "onyomiDone"));
+        assertEquals(22L, readSessionItemColumn(99L, "kunyomiDone"));
     }
 
     /** Read one raw column off a session_item row, bypassing the entity's type mapping. */

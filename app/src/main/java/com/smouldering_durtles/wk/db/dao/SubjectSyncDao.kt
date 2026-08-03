@@ -231,11 +231,11 @@ abstract class SubjectSyncDao {
             " (id, object, characters, slug, documentUrl, meaningMnemonic, meaningHint, readingMnemonic, readingHint, searchTarget, smallSearchTarget," +
             " meanings, auxiliaryMeanings, readings, componentSubjectIds, amalgamationSubjectIds, visuallySimilarSubjectIds," +
             " partsOfSpeech, contextSentences, pronunciationAudios," +
-            " typeCode, lessonPosition, level, hiddenAt, frequency, joyoGrade, jlptLevel, pitchInfo, strokeData, srsSystemId," +
-            " assignmentId, passed, resurrected, srsStage, assignmentPatched, studyMaterialId, studyMaterialPatched," +
+            " numStars, lessonPosition, level, hiddenAt, frequency, joyoGrade, jlptLevel, pitchInfo, strokeData, srsSystemId," +
+            " assignmentId, srsStage, assignmentPatched, studyMaterialId, studyMaterialPatched," +
             " reviewStatisticId, meaningCorrect, meaningIncorrect, meaningMaxStreak, meaningCurrentStreak," +
             " readingCorrect, readingIncorrect, readingMaxStreak, readingCurrentStreak, percentageCorrect," +
-            " statisticPatched, leechScore, levelProgressScore, audioDownloadStatus," +
+            " statisticPatched, leechScore," +
             " resurrectedAt, burnedAt, unlockedAt, startedAt, passedAt, availableAt, lastIncorrectAnswer" +
             " )" +
             " VALUES (:subjectId, :object, :characters, :slug, :documentUrl, :meaningMnemonic, :meaningHint, :readingMnemonic, :readingHint," +
@@ -244,7 +244,7 @@ abstract class SubjectSyncDao {
             " :partsOfSpeech, :contextSentences, :pronunciationAudios," +
             " 0, :lessonPosition, :level, :hiddenAt," +
             " :frequency, :joyoGrade, :jlptLevel, :pitchInfo, :strokeData, :srsSystemId," +
-            " 0, 0, 0, -999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0," +
+            " 0, -999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0," +
             " 0, 0, 0, 0, 0, 0, 0" +
             ")"
     )
@@ -335,13 +335,13 @@ abstract class SubjectSyncDao {
      */
     @Query(
         "INSERT INTO subject (id," +
-            " assignmentId, passed, resurrected, srsStage, assignmentPatched, studyMaterialId, studyMaterialPatched," +
+            " assignmentId, srsStage, assignmentPatched, studyMaterialId, studyMaterialPatched," +
             " reviewStatisticId, meaningCorrect, meaningIncorrect, meaningMaxStreak, meaningCurrentStreak," +
             " readingCorrect, readingIncorrect, readingMaxStreak, readingCurrentStreak, percentageCorrect," +
-            " statisticPatched, frequency, joyoGrade, jlptLevel, levelProgressScore, leechScore, srsSystemId," +
+            " statisticPatched, frequency, joyoGrade, jlptLevel, leechScore, srsSystemId," +
             " resurrectedAt, burnedAt, unlockedAt, startedAt, passedAt, availableAt, hiddenAt, lastIncorrectAnswer" +
             ") VALUES (:id," +
-            " 0, 0, 0, -999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0," +
+            " 0, -999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0," +
             " 0, 0, 0, 0, 0, 0, 0, 0" +
             ")"
     )

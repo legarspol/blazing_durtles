@@ -313,7 +313,7 @@ abstract class SubjectCollectionsDao {
      * @param numStars the number of stars
      * @return the list of IDs
      */
-    @Query("SELECT id FROM subject WHERE typeCode = :numStars ORDER BY id")
+    @Query("SELECT id FROM subject WHERE numStars = :numStars ORDER BY id")
     abstract fun getStarredSubjectIds(numStars: Int): List<Long>
 
     companion object {

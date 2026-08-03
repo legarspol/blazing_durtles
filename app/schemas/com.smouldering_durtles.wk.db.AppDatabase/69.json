@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 68,
-    "identityHash": "6ac2b0d4d7c4b19e7da78e91b2a07dae",
+    "version": 69,
+    "identityHash": "b389039c4814d2fbfd58dc8f5fcc2d62",
     "entities": [
       {
         "tableName": "task_definition",
@@ -70,7 +70,7 @@
       },
       {
         "tableName": "subject",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `object` TEXT, `typeCode` INTEGER NOT NULL, `hiddenAt` INTEGER, `lessonPosition` INTEGER NOT NULL, `srsSystemId` INTEGER NOT NULL, `level` INTEGER NOT NULL, `characters` TEXT, `slug` TEXT, `documentUrl` TEXT, `meanings` TEXT, `meaningMnemonic` TEXT, `meaningHint` TEXT, `auxiliaryMeanings` TEXT, `readings` TEXT, `readingMnemonic` TEXT, `readingHint` TEXT, `componentSubjectIds` TEXT, `amalgamationSubjectIds` TEXT, `visuallySimilarSubjectIds` TEXT, `partsOfSpeech` TEXT, `contextSentences` TEXT, `pronunciationAudios` TEXT, `audioDownloadStatus` INTEGER NOT NULL, `searchTarget` TEXT, `smallSearchTarget` TEXT, `assignmentId` INTEGER NOT NULL, `availableAt` INTEGER, `burnedAt` INTEGER, `passedAt` INTEGER, `resurrectedAt` INTEGER, `startedAt` INTEGER, `unlockedAt` INTEGER, `passed` INTEGER NOT NULL, `resurrected` INTEGER NOT NULL, `srsStage` INTEGER NOT NULL, `levelProgressScore` INTEGER NOT NULL, `lastIncorrectAnswer` INTEGER, `assignmentPatched` INTEGER NOT NULL, `studyMaterialId` INTEGER NOT NULL, `meaningNote` TEXT, `meaningSynonyms` TEXT, `readingNote` TEXT, `studyMaterialPatched` INTEGER NOT NULL, `reviewStatisticId` INTEGER NOT NULL, `meaningCorrect` INTEGER NOT NULL, `meaningIncorrect` INTEGER NOT NULL, `meaningMaxStreak` INTEGER NOT NULL, `meaningCurrentStreak` INTEGER NOT NULL, `readingCorrect` INTEGER NOT NULL, `readingIncorrect` INTEGER NOT NULL, `readingMaxStreak` INTEGER NOT NULL, `readingCurrentStreak` INTEGER NOT NULL, `percentageCorrect` INTEGER NOT NULL, `leechScore` INTEGER NOT NULL, `statisticPatched` INTEGER NOT NULL, `frequency` INTEGER NOT NULL, `joyoGrade` INTEGER NOT NULL, `jlptLevel` INTEGER NOT NULL, `pitchInfo` TEXT, `strokeData` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `object` TEXT, `numStars` INTEGER NOT NULL, `hiddenAt` INTEGER, `lessonPosition` INTEGER NOT NULL, `srsSystemId` INTEGER NOT NULL, `level` INTEGER NOT NULL, `characters` TEXT, `slug` TEXT, `documentUrl` TEXT, `meanings` TEXT, `meaningMnemonic` TEXT, `meaningHint` TEXT, `auxiliaryMeanings` TEXT, `readings` TEXT, `readingMnemonic` TEXT, `readingHint` TEXT, `componentSubjectIds` TEXT, `amalgamationSubjectIds` TEXT, `visuallySimilarSubjectIds` TEXT, `partsOfSpeech` TEXT, `contextSentences` TEXT, `pronunciationAudios` TEXT, `searchTarget` TEXT, `smallSearchTarget` TEXT, `assignmentId` INTEGER NOT NULL, `availableAt` INTEGER, `burnedAt` INTEGER, `passedAt` INTEGER, `resurrectedAt` INTEGER, `startedAt` INTEGER, `unlockedAt` INTEGER, `srsStage` INTEGER NOT NULL, `lastIncorrectAnswer` INTEGER, `assignmentPatched` INTEGER NOT NULL, `studyMaterialId` INTEGER NOT NULL, `meaningNote` TEXT, `meaningSynonyms` TEXT, `readingNote` TEXT, `studyMaterialPatched` INTEGER NOT NULL, `reviewStatisticId` INTEGER NOT NULL, `meaningCorrect` INTEGER NOT NULL, `meaningIncorrect` INTEGER NOT NULL, `meaningMaxStreak` INTEGER NOT NULL, `meaningCurrentStreak` INTEGER NOT NULL, `readingCorrect` INTEGER NOT NULL, `readingIncorrect` INTEGER NOT NULL, `readingMaxStreak` INTEGER NOT NULL, `readingCurrentStreak` INTEGER NOT NULL, `percentageCorrect` INTEGER NOT NULL, `leechScore` INTEGER NOT NULL, `statisticPatched` INTEGER NOT NULL, `frequency` INTEGER NOT NULL, `joyoGrade` INTEGER NOT NULL, `jlptLevel` INTEGER NOT NULL, `pitchInfo` TEXT, `strokeData` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -86,7 +86,7 @@
           },
           {
             "fieldPath": "numStars",
-            "columnName": "typeCode",
+            "columnName": "numStars",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -211,12 +211,6 @@
             "notNull": false
           },
           {
-            "fieldPath": "unused3",
-            "columnName": "audioDownloadStatus",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "searchTarget",
             "columnName": "searchTarget",
             "affinity": "TEXT",
@@ -271,26 +265,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "unused5",
-            "columnName": "passed",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "unused2",
-            "columnName": "resurrected",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "srsStageId",
             "columnName": "srsStage",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "unused4",
-            "columnName": "levelProgressScore",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -638,7 +614,7 @@
       },
       {
         "tableName": "session_item",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `assignmentId` INTEGER NOT NULL, `state` TEXT, `srsSystemId` INTEGER NOT NULL, `srsStage` INTEGER NOT NULL, `level` INTEGER NOT NULL, `typeCode` INTEGER NOT NULL, `bucket` INTEGER NOT NULL, `order` INTEGER NOT NULL, `meaningDone` INTEGER NOT NULL, `meaningIncorrect` INTEGER NOT NULL, `readingDone` INTEGER NOT NULL, `readingIncorrect` INTEGER NOT NULL, `onyomiDone` INTEGER NOT NULL, `onyomiIncorrect` INTEGER NOT NULL, `kunyomiDone` INTEGER NOT NULL, `kunyomiIncorrect` INTEGER NOT NULL, `numAnswers` INTEGER NOT NULL, `lastAnswer` INTEGER NOT NULL, `kanjiAcceptedReadingType` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `assignmentId` INTEGER NOT NULL, `state` TEXT, `srsSystemId` INTEGER NOT NULL, `srsStage` INTEGER NOT NULL, `level` INTEGER NOT NULL, `bucket` INTEGER NOT NULL, `order` INTEGER NOT NULL, `meaningDone` INTEGER NOT NULL, `meaningIncorrect` INTEGER NOT NULL, `readingDone` INTEGER NOT NULL, `readingIncorrect` INTEGER NOT NULL, `onyomiDone` INTEGER NOT NULL, `onyomiIncorrect` INTEGER NOT NULL, `kunyomiDone` INTEGER NOT NULL, `kunyomiIncorrect` INTEGER NOT NULL, `numAnswers` INTEGER NOT NULL, `lastAnswer` INTEGER NOT NULL, `kanjiAcceptedReadingType` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -673,12 +649,6 @@
           {
             "fieldPath": "level",
             "columnName": "level",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "unused",
-            "columnName": "typeCode",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -900,7 +870,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6ac2b0d4d7c4b19e7da78e91b2a07dae')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b389039c4814d2fbfd58dc8f5fcc2d62')"
     ]
   }
 }
