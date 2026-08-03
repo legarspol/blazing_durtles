@@ -384,12 +384,12 @@ class Subject(
      *
      * @return the meaning
      */
-    fun getOneMeaning(): String = getMeanings().reduceOrNull { t, u ->
+    fun getOneMeaning(): String = getMeanings().reduceOrNull { accumulator, newValue ->
         when {
-            t.isPrimary -> t
-            u.isPrimary -> u
-            t.isAcceptedAnswer -> t
-            else -> u
+            accumulator.isPrimary -> accumulator
+            newValue.isPrimary -> newValue
+            accumulator.isAcceptedAnswer -> accumulator
+            else -> newValue
         }
     }?.meaning ?: ""
 
@@ -1422,5 +1422,9 @@ class Subject(
                 emptyList()
             }
         }
+    }
+
+    override fun toString(): String {
+        return entity.id.toString() + getType().name + " " + entity.characters + " " + getOneMeaning()
     }
 }
