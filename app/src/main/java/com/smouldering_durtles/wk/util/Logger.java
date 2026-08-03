@@ -16,6 +16,8 @@
 
 package com.smouldering_durtles.wk.util;
 
+import com.smouldering_durtles.wk.diagnostics.Diagnostics;
+
 /**
  * A logging proxy class that captures a class instance and delegates to the DbLogger singleton.
  */
@@ -79,5 +81,6 @@ public final class Logger {
             return;
         }
         DbLogger.logUnexpectedError(clas, throwable);
+        Diagnostics.logException(throwable);
     }
 }
