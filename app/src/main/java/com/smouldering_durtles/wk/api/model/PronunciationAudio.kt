@@ -33,9 +33,11 @@ import kotlinx.serialization.Serializable
  *
  * The original Java setter coalesced an explicit JSON `null` for `metadata` into a fresh
  * [PronunciationAudioMeta]; a missing/absent `metadata` key already resulted in the same default
- * both before and after this port (via the constructor default below). Only the (unlikely in
- * practice) explicit-`null` case differs now - see the port's final report for this known,
- * low-risk gap.
+ * both before and after this port (via the constructor default below). [apiModelJson]'s
+ * `coerceInputValues = true` restores that coalescing behavior for network parsing. The Jackson
+ * round-trip through the legacy `Converters` object mapper (for the Room JSON blob) is unaffected
+ * by that flag and still throws on an explicit `null` here - a known, low-risk gap, left alone
+ * because `Converters` is out of scope for this port.
  */
 @Serializable
 data class PronunciationAudio @JsonCreator constructor(

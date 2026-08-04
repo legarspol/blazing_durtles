@@ -125,4 +125,26 @@ class ApiSubjectTest {
         assertEquals(1, subject.level)
         assertEquals("一", subject.characters)
     }
+
+    @Test
+    fun `coerces an explicit null for a non-nullable field with a default instead of throwing`() {
+        val withExplicitNullMetadata = """
+            {
+              "level": 1,
+              "slug": "one",
+              "characters": "一",
+              "pronunciation_audios": [
+                {
+                  "url": "https://files.wanikani.com/audio.mp3",
+                  "content_type": "audio/mpeg",
+                  "metadata": null
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val subject = apiModelJson.decodeFromString(ApiSubject.serializer(), withExplicitNullMetadata)
+
+        assertEquals(PronunciationAudioMeta(), subject.pronunciationAudios[0].metadata)
+    }
 }
