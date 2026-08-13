@@ -1,0 +1,172 @@
+name: CI
+
+# Builds and tests every pull request against main, and every push to main.
+# Issue #72. Deliberately separate from migration-bot.yml, which is cron-driven
+# and runs the coder -> reviewer -> fix pipeline; the two share nothing.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to a PR makes the in-flight run obsolete, so cancel it. Runs on main
+# are not cancelled: each one is the record for that commit.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  build:
+    name: Build + unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Also restores/saves the Gradle dependency and build caches.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # No Firebase secret is needed: app/build.gradle.kts copies the committed
+      # app/google-services-placeholder.json into place when the gitignored real
+      # app/google-services.json is absent, which is always true on a fresh checkout.
+      - name: Assemble debug
+        run: ./gradlew assembleDebug --stacktrace
+
+      # Room exports its schema during KSP. If the export differs from what is committed,
+      # an entity changed without its schema being regenerated and committed alongside it
+      # -- a release blocker per CLAUDE.md, and nothing else in the process catches it.
+      #
+      # Two things this check needs that are easy to get wrong, both verified locally:
+      #
+      # 1. --rerun. app/schemas/ is configured through a KSP *argument*, not a declared
+      #    task output, so Gradle does not track it: deleting the schema outright still
+      #    leaves kspDebugKotlin UP-TO-DATE. Without forcing re-execution, a Gradle cache
+      #    hit means KSP never writes the schema and this check passes while verifying
+      #    nothing. It re-executes exactly one task, so the cost is negligible.
+      # 2. `git status --porcelain`, not `git diff --exit-code`. A version bump writes a
+      #    NEW file (70.json rather than a modified 69.json) and git diff does not see
+      #    untracked files.
+      - name: Check Room schema is committed and up to date
+        run: |
+          ./gradlew :app:kspDebugKotlin --rerun --stacktrace
+          drift="$(git status --porcelain app/schemas/)"
+          if [ -n "$drift" ]; then
+            echo "::error::Room schema drift. The generated schema does not match what is committed."
+            echo "$drift"
+            echo
+            echo "Regenerate and commit app/schemas/, and update the schema baseline in CLAUDE.md."
+            git diff -- app/schemas/
+            exit 1
+          fi
+          echo "Room schema matches the committed baseline."
+
+      - name: Unit tests
+        run: ./gradlew test --stacktrace
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            core/build/reports/tests/
+            core/build/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  instrumented:
+    name: Instrumented tests (API 36)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # The emulator needs hardware acceleration; ubuntu-latest has KVM but does not
+      # grant it to the runner user by default.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Booting a cold AVD dominates this job's wall clock, so cache a booted snapshot
+      # and reuse it. The key covers the API level and image, which is everything that
+      # invalidates the snapshot.
+      - name: Cache AVD snapshot
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-36-google_apis-x86_64
+
+      - name: Create AVD snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot."
+
+      # connectedDebugAndroidTest, not connectedAndroidTest: only the debug variant
+      # carries instrumented tests, and running all variants doubles the job for nothing.
+      #
+      # These run on every PR rather than nightly. The DAO characterization suite is the
+      # safety net for the whole data-layer port (#72), and this repo is public, so Actions
+      # minutes are free -- the cost is wall clock only. The AVD cache above removes the
+      # largest single part of that (creating and booting a cold AVD); building the app,
+      # booting from the snapshot, installing and running the suite are still paid every run.
+      - name: Instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
+
+      # app/build.gradle.kts redirects connected-test output to these root directories
+      # via android.testOptions { reportDir / resultsDir }, so they are NOT under app/build.
+      - name: Upload instrumented test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumented-test-reports
+          path: |
+            test-reports/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
