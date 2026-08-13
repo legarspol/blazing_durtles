@@ -30,16 +30,15 @@ import java.util.regex.Pattern
 /**
  * Room entity for the session_item table, which persists items in a session.
  *
- * [state] and [kanjiAcceptedReadingType] are nullable because their columns are: Room derives
- * `NOT NULL` from the Kotlin type, and a non-null type here would change the v68 schema. Neither
- * is ever actually null on a row read back from the database — [Converters] coerces a null to
- * `ACTIVE`/`NEITHER` on the way in.
+ * [state] and [kanjiAcceptedReadingType] are non-null, and their columns are `NOT NULL` to
+ * match. They were nullable only to keep the Flaming Durtles schema unchanged; nothing ever
+ * wrote a null, and [Converters] coerced one to `ACTIVE`/`NEITHER` on the way in.
  */
 @Entity(tableName = "session_item")
 class SessionItem {
     @PrimaryKey var id: Long = 0L
     var assignmentId: Long = 0L
-    var state: SessionItemState? = ACTIVE
+    var state: SessionItemState = ACTIVE
     var srsSystemId: Long = 0L
     @ColumnInfo(name = "srsStage") var srsStageId: Long = 0L
     var level: Int = 0
@@ -67,7 +66,7 @@ class SessionItem {
     @ColumnInfo(name = "kunyomiIncorrect") var question4Incorrect: Int = 0
     var numAnswers: Int = 0
     var lastAnswer: Long = 0L
-    var kanjiAcceptedReadingType: KanjiAcceptedReadingType? = KanjiAcceptedReadingType.NEITHER
+    var kanjiAcceptedReadingType: KanjiAcceptedReadingType = KanjiAcceptedReadingType.NEITHER
 
     @Ignore private var typefaceConfiguration: TypefaceConfiguration? = null
 

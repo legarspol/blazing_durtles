@@ -1,7 +1,9 @@
 package com.smouldering_durtles.wk.db.model
 
 import androidx.room.ColumnInfo
+import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.smouldering_durtles.wk.api.model.AuxiliaryMeaning
 import com.smouldering_durtles.wk.api.model.ContextSentence
 import com.smouldering_durtles.wk.api.model.Meaning
@@ -15,17 +17,19 @@ import com.smouldering_durtles.wk.model.PitchInfo
  * a single entity for convenience - subject, assignment, review statistics, study materials
  * and reference data.
  *
- * This is a query result holder, not the `@Entity` — the schema is defined by
- * [SubjectEntityDefinition]. That split is what lets the timestamp fields here be primitive
- * `Long` (0 meaning "not set") while the columns themselves stay nullable.
+ * The timestamp fields are primitive `Long` with 0 meaning "not set"; the columns are
+ * `NOT NULL` to match. This class used to be a plain query-result holder paired with a
+ * separate `SubjectEntityDefinition` that declared those columns nullable, purely so the
+ * schema could stay as Flaming Durtles left it. That pairing is gone.
  */
+@Entity(tableName = "subject")
 class SubjectEntity {
     // From base subject
 
     /**
      * The unique ID.
      */
-    @JvmField var id: Long = 0L
+    @JvmField @PrimaryKey var id: Long = 0L
 
     /**
      * The type of subject, one of "radical", "kanji", "vocabulary", "kana_vocabulary".
@@ -181,14 +185,14 @@ class SubjectEntity {
 
     /**
      * The timestamp when this subject was started, i.e. when the lesson for this subject was completed,
-     * or null if it hasn't been started yet.
+     * or 0L if it hasn't been started yet.
      */
-    @JvmField var startedAt: Long = 0L
+    @JvmField @ColumnInfo(index = true) var startedAt: Long = 0L
 
     /**
-     * The timestamp when this subject was unlocked, or null if it is still locked.
+     * The timestamp when this subject was unlocked, or 0L if it is still locked.
      */
-    @JvmField var unlockedAt: Long = 0L
+    @JvmField @ColumnInfo(index = true) var unlockedAt: Long = 0L
 
     /**
      * The current SRS stage for this subject.

@@ -22,14 +22,14 @@ import com.smouldering_durtles.wk.db.dao.SubjectSyncDao
 import com.smouldering_durtles.wk.db.dao.SubjectViewsDao
 import com.smouldering_durtles.wk.db.dao.TaskDefinitionDao
 import com.smouldering_durtles.wk.db.model.AudioDownloadStatus
-import com.smouldering_durtles.wk.db.model.LevelProgressionEntityDefinition
-import com.smouldering_durtles.wk.db.model.LogRecordEntityDefinition
+import com.smouldering_durtles.wk.db.model.LevelProgression
+import com.smouldering_durtles.wk.db.model.LogRecord
 import com.smouldering_durtles.wk.db.model.PronunciationAudioOwner
 import com.smouldering_durtles.wk.db.model.Property
 import com.smouldering_durtles.wk.db.model.SearchPreset
 import com.smouldering_durtles.wk.db.model.SessionItem
 import com.smouldering_durtles.wk.db.model.SrsSystemDefinition
-import com.smouldering_durtles.wk.db.model.SubjectEntityDefinition
+import com.smouldering_durtles.wk.db.model.SubjectEntity
 import com.smouldering_durtles.wk.db.model.TaskDefinition
 import com.smouldering_durtles.wk.enums.SessionType
 import com.smouldering_durtles.wk.jobs.TickJob
@@ -64,15 +64,15 @@ import java.util.Locale
     entities = [
         TaskDefinition::class,
         Property::class,
-        SubjectEntityDefinition::class,
+        SubjectEntity::class,
         SrsSystemDefinition::class,
-        LevelProgressionEntityDefinition::class,
+        LevelProgression::class,
         SessionItem::class,
-        LogRecordEntityDefinition::class,
+        LogRecord::class,
         AudioDownloadStatus::class,
         SearchPreset::class
     ],
-    version = 69
+    version = 70
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
