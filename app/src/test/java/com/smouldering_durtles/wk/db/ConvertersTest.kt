@@ -42,25 +42,15 @@ class ConvertersTest {
     }
 
     @Test
-    fun `null session item state reads and writes as ACTIVE`() {
-        assertEquals("ACTIVE", Converters.sessionItemStateToString(null))
-        assertEquals(SessionItemState.ACTIVE, Converters.stringToSessionItemState(null))
-    }
-
-    @Test
-    fun `legacy NEW and STARTED stored values are coerced to ACTIVE`() {
-        // Values written by older app versions that still exist in installed databases. Dropping
-        // this coercion in the port would throw on read for anyone upgrading with such a row.
-        assertEquals(SessionItemState.ACTIVE, Converters.stringToSessionItemState("NEW"))
-        assertEquals(SessionItemState.ACTIVE, Converters.stringToSessionItemState("STARTED"))
-    }
-
-    @Test
     fun `an unrecognised session item state throws rather than defaulting`() {
-        // Deliberately not lenient: only NEW/STARTED are known legacy values. Preserve this —
-        // silently defaulting would hide data corruption.
+        // Deliberately not lenient, and now uniformly so: the NEW/STARTED coercion was dropped in
+        // #69 along with the legacy databases that could contain them. Silently defaulting would
+        // hide data corruption.
         assertThrows(IllegalArgumentException::class.java) {
             Converters.stringToSessionItemState("NOT_A_STATE")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            Converters.stringToSessionItemState("STARTED")
         }
     }
 
@@ -84,6 +74,9 @@ class ConvertersTest {
 
     @Test
     fun `null session type reads and writes as NONE`() {
+        // Unlike the two enum converters above, this null is real and stays: session type lives in
+        // the key/value property table, and PropertiesDao.getSessionType reads it through a lookup
+        // that returns null until a session has ever been started.
         assertEquals("NONE", Converters.sessionTypeToString(null))
         assertEquals(SessionType.NONE, Converters.stringToSessionType(null))
     }
@@ -111,12 +104,6 @@ class ConvertersTest {
             val stored = Converters.kanjiAcceptedReadingTypeToString(type)
             assertEquals(type, Converters.stringToKanjiAcceptedReadingType(stored))
         }
-    }
-
-    @Test
-    fun `null kanji accepted reading type reads and writes as NEITHER`() {
-        assertEquals("NEITHER", Converters.kanjiAcceptedReadingTypeToString(null))
-        assertEquals(KanjiAcceptedReadingType.NEITHER, Converters.stringToKanjiAcceptedReadingType(null))
     }
 
     @Test

@@ -327,7 +327,7 @@ abstract class SubjectSyncDao {
     }
 
     /**
-     * Room-generated method: insert an empty subject into the database. This is used to prepare an update with
+     * Insert an empty subject into the database. This is used to prepare an update with
      * an assignment or something like that for which the subject doesn't exist yet. The subject will be
      * effectively useless until the core subject data is included as well.
      *

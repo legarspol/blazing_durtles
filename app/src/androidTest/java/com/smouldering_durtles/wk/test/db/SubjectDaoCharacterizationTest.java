@@ -104,13 +104,21 @@ public class SubjectDaoCharacterizationTest {
         for (final Map.Entry<String, Integer> entry : FILLER.entrySet()) {
             values.put(entry.getKey(), entry.getValue());
         }
-        // Nullable columns the queries filter on, so not part of the NOT NULL filler above. Both are
-        // semantically zero rather than arbitrary: hiddenAt = 0 means visible, and
-        // updateLastIncorrectAnswer's guard compares against lastIncorrectAnswer, which must not be
-        // NULL for that update to fire at all.
+        // Not part of the filler above because the queries filter on them, so they need meaningful
+        // values rather than arbitrary distinct ones: hiddenAt = 0 means visible, and
+        // lastIncorrectAnswer carries its own filler so the guarded update has something to compare.
         values.put("object", "kanji");
         values.put("hiddenAt", 0L);
         values.put("lastIncorrectAnswer", LAST_INCORRECT_ANSWER_FILLER);
+        // #69 made these NOT NULL, so they have to be written rather than left out. They get 0, not
+        // a distinct filler: 0 is what the entity means by "not set", and several queries read them
+        // as exactly that sentinel — getLevelReachedDate filters on "unlockedAt != 0" and
+        // getLevelProgressLockedItems on "unlockedAt = 0". A distinct nonzero value here would
+        // quietly change what those queries see. Tests that care override them.
+        for (final String timestamp : Arrays.asList(
+                "availableAt", "burnedAt", "passedAt", "resurrectedAt", "startedAt", "unlockedAt")) {
+            values.put(timestamp, 0L);
+        }
         values.putAll(overrides);
         db.getOpenHelper().getWritableDatabase().insert("subject", 0, values);
     }
@@ -214,11 +222,12 @@ public class SubjectDaoCharacterizationTest {
     }
 
     @Test
-    public void updateLastIncorrectAnswerIsANoOpWhenTheStoredValueIsNull() {
-        // lastIncorrectAnswer is nullable in the schema, and "NULL < 555" is NULL rather than true,
-        // so the guarded update silently does nothing. The entity defaults the field to 0 so this
-        // should not arise in practice — recorded because it is latent, and because a port that
-        // made the column NOT NULL would change this behaviour while the schema hash caught it.
+    public void handWrittenPositionalInsertLandsInTheColumnsItNames() {
+        // This test used to assert that the guarded update was a no-op against a NULL
+        // lastIncorrectAnswer, because "NULL < 555" is NULL rather than true. #69 made that column
+        // NOT NULL, so the case can no longer arise and the update now simply advances the value.
+        // What is kept is the other half of what this test was doing, which is still worth having:
+        // a hand-written positional INSERT whose alignment is checked at both ends.
         // Positional INSERT, so the values ascend consecutively with no zeros: if the column list and
         // the VALUES list ever drift out of step, the readbacks below land on the wrong column and
         // say so, instead of matching 0 against 0. Unlike the ContentValues helper above, the
@@ -234,26 +243,29 @@ public class SubjectDaoCharacterizationTest {
                         + " meaningIncorrect, meaningMaxStreak, meaningCurrentStreak, readingCorrect,"
                         + " readingIncorrect, readingMaxStreak, readingCurrentStreak,"
                         + " percentageCorrect, leechScore, statisticPatched, frequency, joyoGrade,"
-                        + " jlptLevel)"
-                        + " VALUES (77, 'kanji', 19, NULL, 20, 21, 22, 23, 24, 25, 26,"
-                        + " 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43)");
+                        + " jlptLevel,"
+                        // NOT NULL since #69, so this row has to supply them. Distinct like the
+                        // rest, since nothing in this test reads them as the 0 "not set" sentinel.
+                        + " availableAt, burnedAt, passedAt, resurrectedAt, startedAt, unlockedAt)"
+                        + " VALUES (77, 'kanji', 19, 20, 21, 22, 23, 24, 25, 26, 27,"
+                        + " 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,"
+                        + " 45, 46, 47, 48, 49, 50)");
 
         db.subjectDao().updateLastIncorrectAnswer(77L, 555L);
 
-        try (android.database.Cursor cursor = db.getOpenHelper().getReadableDatabase().query(
-                "SELECT lastIncorrectAnswer IS NULL FROM subject WHERE id = 77")) {
-            assertTrue(cursor.moveToFirst());
-            assertEquals("the guarded update should not have touched a NULL", 1, cursor.getInt(0));
-        }
+        // 20 < 555, so the guard passes and the timestamp advances.
+        assertEquals(555L, readLongColumn(77L, "lastIncorrectAnswer"));
         // Check the alignment of the row this test just hand-wrote: both ends, and the three flag
         // columns that a one-place shift would most easily hide in.
         assertEquals(19L, readLongColumn(77L, "hiddenAt"));
-        assertEquals(20L, readLongColumn(77L, "numStars"));
-        assertEquals(26L, readLongColumn(77L, "assignmentPatched"));
-        assertEquals(27L, readLongColumn(77L, "studyMaterialId"));
-        assertEquals(28L, readLongColumn(77L, "studyMaterialPatched"));
-        assertEquals(40L, readLongColumn(77L, "statisticPatched"));
-        assertEquals(43L, readLongColumn(77L, "jlptLevel"));
+        assertEquals(21L, readLongColumn(77L, "numStars"));
+        assertEquals(27L, readLongColumn(77L, "assignmentPatched"));
+        assertEquals(28L, readLongColumn(77L, "studyMaterialId"));
+        assertEquals(29L, readLongColumn(77L, "studyMaterialPatched"));
+        assertEquals(41L, readLongColumn(77L, "statisticPatched"));
+        assertEquals(44L, readLongColumn(77L, "jlptLevel"));
+        assertEquals(45L, readLongColumn(77L, "availableAt"));
+        assertEquals(50L, readLongColumn(77L, "unlockedAt"));
     }
 
     @Test

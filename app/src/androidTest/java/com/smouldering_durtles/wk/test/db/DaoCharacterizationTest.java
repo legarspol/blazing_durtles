@@ -117,27 +117,31 @@ public class DaoCharacterizationTest {
     }
 
     @Test
-    public void legacyStartedStateStoredByAnOlderVersionReadsBackAsActive() {
-        // The state column is a bare TEXT column, so a database written by an older app version can
-        // legitimately contain "STARTED"/"NEW". Converters coerces those to ACTIVE; this asserts the
-        // coercion holds when the value comes out of real SQLite rather than from a direct call.
+    public void aRowWrittenAsRawSqlReadsBackWithEveryColumnInPlace() {
+        // Was legacyStartedStateStoredByAnOlderVersionReadsBackAsActive, asserting that a "STARTED"
+        // written by an older app version coerced to ACTIVE. #69 deleted that coercion — the enum
+        // has no such member, and fallbackToDestructiveMigration has since wiped every database that
+        // could have held one, so the value is now unreachable. The column-alignment check the test
+        // was built around is worth keeping, so it stays with a real state written instead.
         // Positional INSERT, so every numeric value is distinct and consecutive rather than 0: a
         // column list that drifts out of step with its VALUES list would otherwise still satisfy
         // 0 == 0. No zeros at all here, including in the boolean *Done slots — nothing in this test
         // reads them as booleans, and a zero sitting between two other zeros is exactly where a
-        // one-column shift would hide.
+        // one-column shift would hide. kanjiAcceptedReadingType is spelled out because #69 made it
+        // NOT NULL; 'NEITHER' is what the converter would have coerced a missing value to anyway.
         db.getOpenHelper().getWritableDatabase().execSQL(
-                "INSERT INTO session_item (id, assignmentId, state, srsSystemId, srsStage, level,"
+                "INSERT INTO session_item (id, assignmentId, state, kanjiAcceptedReadingType,"
+                        + " srsSystemId, srsStage, level,"
                         + " bucket, `order`, meaningDone, meaningIncorrect, readingDone,"
                         + " readingIncorrect, onyomiDone, onyomiIncorrect, kunyomiDone,"
                         + " kunyomiIncorrect, numAnswers, lastAnswer)"
-                        + " VALUES (99, 990, 'STARTED', 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,"
-                        + " 21, 22, 23, 24, 25)");
+                        + " VALUES (99, 990, 'PENDING', 'NEITHER', 11, 12, 13, 14, 15, 16, 17, 18,"
+                        + " 19, 20, 21, 22, 23, 24, 25)");
 
         final SessionItem loaded = db.sessionItemDao().getById(99L);
 
         assertNotNull(loaded);
-        assertEquals(SessionItemState.ACTIVE, loaded.getState());
+        assertEquals(SessionItemState.PENDING, loaded.getState());
         // Confirm the hand-written row landed in the columns it claims to, so the assertion above is
         // really about the state converter and not about a coincidentally-shifted row.
         assertEquals(990L, loaded.getAssignmentId());

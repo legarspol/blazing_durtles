@@ -16,10 +16,18 @@ import java.util.TimeZone
  * Various data conversion tools.
  *
  * The nullability here is load-bearing rather than cosmetic. Room derives a column's `NOT NULL`
- * from the Kotlin type it converts to, and the enum columns these back are all nullable in the
- * v68 schema, so the three enum-to-String converters must keep accepting null and coercing it to
- * a default. [stringToSubjectType]/[subjectTypeToString] are genuinely null-in-null-out because
- * the `object` column can legitimately hold NULL.
+ * from the Kotlin type it converts to, so a converter's signature and its column's nullability
+ * have to agree:
+ *
+ * - [stringToSessionItemState]/[sessionItemStateToString] and
+ *   [stringToKanjiAcceptedReadingType]/[kanjiAcceptedReadingTypeToString] are non-null both ways.
+ *   Their columns are `NOT NULL` as of the v70 schema; they were nullable only to keep the
+ *   Flaming Durtles schema unchanged, and nothing ever wrote a null.
+ * - [stringToSessionType] still accepts null, for a different reason: session type is not a
+ *   column at all, it is a row in the key/value `property` table, and it is genuinely absent
+ *   until a session starts. `null` there means "no property yet", not "nullable column".
+ * - [stringToSubjectType]/[subjectTypeToString] are null-in-null-out because the `object` column
+ *   can legitimately hold NULL.
  */
 object Converters {
     /**
@@ -48,34 +56,24 @@ object Converters {
     }
 
     /**
-     * Convert a String (may be null) to an enum value of type SessionItemState.
+     * Convert a String to an enum value of type SessionItemState.
      *
-     * @param value the String value or null
-     * @return the enum instance or a default if value is null
+     * @param value the String value
+     * @return the enum instance
      */
     @JvmStatic
     @TypeConverter
-    fun stringToSessionItemState(value: String?): SessionItemState {
-        if (value == null || value == "NEW" || value == "STARTED") {
-            return SessionItemState.ACTIVE
-        }
-        return SessionItemState.valueOf(value)
-    }
+    fun stringToSessionItemState(value: String): SessionItemState = SessionItemState.valueOf(value)
 
     /**
-     * Convert an enum value of type SessionItemState (may be null) to String.
+     * Convert an enum value of type SessionItemState to String.
      *
-     * @param value the enum value or null
-     * @return the name or a default if value is null
+     * @param value the enum value
+     * @return the name
      */
     @JvmStatic
     @TypeConverter
-    fun sessionItemStateToString(value: SessionItemState?): String {
-        if (value == null) {
-            return SessionItemState.ACTIVE.name
-        }
-        return value.name
-    }
+    fun sessionItemStateToString(value: SessionItemState): String = value.name
 
     /**
      * Convert a String (may be null) to an enum value of type SessionType.
@@ -108,34 +106,25 @@ object Converters {
     }
 
     /**
-     * Convert a String (may be null) to an enum value of type KanjiAcceptedReadingType.
+     * Convert a String to an enum value of type KanjiAcceptedReadingType.
      *
-     * @param value the String value or null
-     * @return the enum instance or a default if value is null
+     * @param value the String value
+     * @return the enum instance
      */
     @JvmStatic
     @TypeConverter
-    fun stringToKanjiAcceptedReadingType(value: String?): KanjiAcceptedReadingType {
-        if (value == null) {
-            return KanjiAcceptedReadingType.NEITHER
-        }
-        return KanjiAcceptedReadingType.valueOf(value)
-    }
+    fun stringToKanjiAcceptedReadingType(value: String): KanjiAcceptedReadingType =
+        KanjiAcceptedReadingType.valueOf(value)
 
     /**
-     * Convert an enum value of type KanjiAcceptedReadingType (may be null) to String.
+     * Convert an enum value of type KanjiAcceptedReadingType to String.
      *
-     * @param value the enum value or null
-     * @return the name or a default if value is null
+     * @param value the enum value
+     * @return the name
      */
     @JvmStatic
     @TypeConverter
-    fun kanjiAcceptedReadingTypeToString(value: KanjiAcceptedReadingType?): String {
-        if (value == null) {
-            return KanjiAcceptedReadingType.NEITHER.name
-        }
-        return value.name
-    }
+    fun kanjiAcceptedReadingTypeToString(value: KanjiAcceptedReadingType): String = value.name
 
     /**
      * Convert a String (may be null) to an enum value of type SubjectType.
