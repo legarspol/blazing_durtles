@@ -22,7 +22,7 @@ class LogRecord {
     /**
      * Timestamp when the event was generated.
      */
-    @JvmField var timestamp: Long = 0L
+    var timestamp: Long = 0L
 
     /**
      * The tag (class name) for this record.
