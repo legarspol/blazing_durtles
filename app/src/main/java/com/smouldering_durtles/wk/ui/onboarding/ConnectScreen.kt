@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,7 +23,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -30,7 +32,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.smouldering_durtles.wk.R
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 
@@ -99,7 +100,7 @@ fun ConnectScreen(
                     text = OnboardingStrings.openWaniKaniSettings,
                     onClick = onOpenSettings,
                     emphasis = if (settingsTapped) ButtonEmphasis.Tonal else ButtonEmphasis.Filled,
-                    trailingIcon = painterResource(R.drawable.ic_open_in_new),
+                    trailingIcon = Icons.Rounded.OpenInNew,
                 )
                 OnboardingButton(
                     text = OnboardingStrings.haveMyToken,
@@ -164,7 +165,7 @@ private fun PrivacyNote(modifier: Modifier = Modifier) {
     ) {
         Row(Modifier.padding(horizontal = 15.dp, vertical = 13.dp)) {
             Icon(
-                painterResource(R.drawable.ic_lock),
+                Icons.Rounded.Lock,
                 contentDescription = null,
                 tint = BdTheme.colors.emberInk,
                 modifier = Modifier.size(19.dp),

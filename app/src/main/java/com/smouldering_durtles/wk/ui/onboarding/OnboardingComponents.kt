@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -23,13 +24,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.smouldering_durtles.wk.R
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 import com.smouldering_durtles.wk.ui.theme.JetBrainsMono
@@ -52,7 +51,7 @@ fun OnboardingButton(
     modifier: Modifier = Modifier,
     emphasis: ButtonEmphasis = ButtonEmphasis.Filled,
     enabled: Boolean = true,
-    trailingIcon: Painter? = null,
+    trailingIcon: ImageVector? = null,
 ) {
     val colors = when (emphasis) {
         ButtonEmphasis.Filled -> ButtonDefaults.buttonColors(
@@ -177,7 +176,7 @@ private fun ComponentsPreview(darkTheme: Boolean) {
                 OnboardingButton("Filled", {}, emphasis = ButtonEmphasis.Filled)
                 OnboardingButton(
                     "Filled with icon", {},
-                    trailingIcon = painterResource(R.drawable.ic_open_in_new),
+                    trailingIcon = Icons.Rounded.OpenInNew,
                 )
                 OnboardingButton("Tonal", {}, emphasis = ButtonEmphasis.Tonal)
                 OnboardingButton("Disabled", {}, enabled = false)

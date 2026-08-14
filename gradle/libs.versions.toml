@@ -83,6 +83,7 @@ androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 # Used directly by every onboarding screen (Image, verticalScroll, isSystemInDarkTheme,
 # BorderStroke); it resolves transitively via material3, but relying on that is accidental.
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }

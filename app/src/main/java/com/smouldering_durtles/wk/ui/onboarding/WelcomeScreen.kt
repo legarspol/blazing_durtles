@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -86,7 +85,7 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
                 OnboardingButton(
                     text = OnboardingStrings.getStarted,
                     onClick = onGetStarted,
-                    trailingIcon = rememberVectorPainter(Icons.AutoMirrored.Rounded.ArrowForward),
+                    trailingIcon = Icons.AutoMirrored.Rounded.ArrowForward,
                 )
             }
         }
