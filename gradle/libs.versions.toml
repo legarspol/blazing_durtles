@@ -32,6 +32,10 @@ annotation = "1.7.1"
 
 # Compose (individual library versions come from the BOM)
 composeBom = "2024.09.03"
+# navigation-compose and lifecycle-viewmodel-compose sit outside the Compose BOM, so they carry
+# their own pins. lifecycle here matches what activity 1.9.3 already resolves to transitively.
+navigation = "2.8.4"
+lifecycle = "2.8.3"
 
 # AndroidX — platform / data
 room = "2.6.1"
@@ -77,7 +81,14 @@ androidx-annotation = { module = "androidx.annotation:annotation", version.ref =
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+# Used directly by every onboarding screen (Image, verticalScroll, isSystemInDarkTheme,
+# BorderStroke); it resolves transitively via material3, but relying on that is accidental.
+androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 
 # AndroidX — platform / data
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
