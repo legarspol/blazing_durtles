@@ -20,6 +20,7 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.runAsync;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 import static java.util.Objects.requireNonNull;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -32,6 +33,7 @@ import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.enums.SubjectType;
 import com.smouldering_durtles.wk.model.PitchInfo;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
+import com.smouldering_durtles.wk.ui.onboarding.OnboardingActivity;
 import com.smouldering_durtles.wk.util.Logger;
 import com.smouldering_durtles.wk.util.PitchInfoUtil;
 import com.smouldering_durtles.wk.util.ReferenceDataUtil;
@@ -217,7 +219,10 @@ public final class TestActivity extends AbstractActivity {
         safe(() -> {
             LOGGER.info("Test button 2 clicked!");
             document.setText("Click 2!");
-            goToActivity(NoApiKeyHelpActivity.class);
+            // Temporary: onboarding is not yet wired into the API-key gate, and this scratch
+            // button is the only way to reach it on a device. Both it and this activity's
+            // button go away when the routing flip lands.
+            startActivity(new Intent(this, OnboardingActivity.class));
         });
     }
 
