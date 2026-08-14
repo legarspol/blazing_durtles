@@ -192,7 +192,13 @@ public final class Constants {
             + " <li>&nbsp;<a href=\"https://fonts.google.com/specimen/Kosugi\">Kosugi</a>, created by MOTOYA.<br/>"
             + " <li>&nbsp;<a href=\"https://fonts.google.com/specimen/Kosugi+Maru\">Kosugi Maru</a>, created by MOTOYA.<br/>"
             + " <li>&nbsp;<a href=\"http://rooms.webcrow.jp/font/index.html\">Otsutome</a>.<br/>"
-            + " <li>&nbsp;<a href=\"http://pm85122.onamae.jp/851Gkktt.html\">851 Gochikakutto</a>."
+            + " <li>&nbsp;<a href=\"http://pm85122.onamae.jp/851Gkktt.html\">851 Gochikakutto</a>.<br/>"
+            + " <li>&nbsp;<a href=\"https://github.com/tokotype/PlusJakartaSans\">Plus Jakarta Sans</a>,"
+            + " (C) the Plus Jakarta Sans Project Authors,"
+            + " covered by the <a href=\"https://openfontlicense.org/\">SIL Open Font License 1.1</a>.<br/>"
+            + " <li>&nbsp;<a href=\"https://github.com/JetBrains/JetBrainsMono\">JetBrains Mono</a>,"
+            + " (C) the JetBrains Mono Project Authors,"
+            + " covered by the <a href=\"https://openfontlicense.org/\">SIL Open Font License 1.1</a>."
             + "</ul>";
 
     /**
