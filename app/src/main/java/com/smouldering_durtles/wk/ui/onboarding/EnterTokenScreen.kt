@@ -126,7 +126,7 @@ private fun EnterTokenPreviewEmpty() = BlazingDurtlesTheme(darkTheme = false) {
 @Preview(name = "Enter token — light, valid", showBackground = true)
 @Composable
 private fun EnterTokenPreviewValid() = BlazingDurtlesTheme(darkTheme = false) {
-    EnterTokenScreen("029c9659-4af7-488a-8c3c-5f0f852ba034", true, {}, {}, {})
+    EnterTokenScreen("00000000-1111-2222-3333-444444444444", true, {}, {}, {})
 }
 
 @Preview(name = "Enter token — dark, empty", showBackground = true)
@@ -138,5 +138,5 @@ private fun EnterTokenPreviewDarkEmpty() = BlazingDurtlesTheme(darkTheme = true)
 @Preview(name = "Enter token — dark, valid", showBackground = true)
 @Composable
 private fun EnterTokenPreviewDarkValid() = BlazingDurtlesTheme(darkTheme = true) {
-    EnterTokenScreen("029c9659-4af7-488a-8c3c-5f0f852ba034", true, {}, {}, {})
+    EnterTokenScreen("00000000-1111-2222-3333-444444444444", true, {}, {}, {})
 }

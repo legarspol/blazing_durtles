@@ -6,8 +6,8 @@ import kotlin.test.assertTrue
 import org.junit.Test
 
 /** Two real WaniKani personal access tokens, used as the shape of record. */
-private const val TOKEN = "029c9659-4af7-488a-8c3c-5f0f852ba034"
-private const val OTHER_TOKEN = "1368c809-8276-45f6-8143-d6ec76131218"
+private const val TOKEN = "00000000-1111-2222-3333-444444444444"
+private const val OTHER_TOKEN = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
 class ApiTokenFormatTest {
 
