@@ -6,11 +6,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import com.smouldering_durtles.wk.activities.MainActivity
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 
 /**
@@ -26,29 +27,37 @@ import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
  */
 class OnboardingActivity : ComponentActivity() {
 
+    private val viewModel: OnboardingViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContent {
-            val darkTheme = isSystemInDarkTheme()
-            BlazingDurtlesTheme(darkTheme = darkTheme) {
-                // Placeholder state until the ViewModel lands; keeps the graph drivable so the
-                // screens can be walked on a device.
-                var settingsTapped by remember { mutableStateOf(false) }
-                var token by remember { mutableStateOf("") }
+            BlazingDurtlesTheme(darkTheme = isSystemInDarkTheme()) {
+                // collectAsState rather than collectAsStateWithLifecycle: the source is a
+                // ViewModel-held StateFlow with no cold upstream, so there is nothing for
+                // lifecycle awareness to release, and it would cost an extra artifact.
+                val state by viewModel.state.collectAsState()
+
+                LaunchedEffect(state.finished) {
+                    if (state.finished) {
+                        goToDashboard()
+                    }
+                }
 
                 OnboardingNavHost(
-                    start = OnboardingDestination.Welcome,
-                    settingsTapped = settingsTapped,
-                    token = token,
-                    canContinue = token.isNotBlank(),
+                    start = viewModel.startDestination,
+                    settingsTapped = state.settingsTapped,
+                    token = state.token,
+                    canContinue = state.canContinue,
+                    onWelcomeShown = viewModel::onWelcomeShown,
                     onOpenWaniKaniSettings = {
-                        settingsTapped = true
+                        viewModel.onOpenSettingsTapped()
                         openWaniKaniTokenSettings()
                     },
-                    onTokenChange = { token = it },
-                    onContinue = { },
+                    onTokenChange = viewModel::onTokenChange,
+                    onContinue = viewModel::onContinue,
                     onExit = { finishAffinity() },
                 )
             }
@@ -57,5 +66,19 @@ class OnboardingActivity : ComponentActivity() {
 
     private fun openWaniKaniTokenSettings() {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(OnboardingStrings.wanikaniTokensUrl)))
+    }
+
+    /**
+     * Starts the dashboard as a fresh task. The MainActivity that bounced the user here is still
+     * on the back stack and would bounce again the moment it resumed if it were reused, so the
+     * task is cleared rather than returned to.
+     */
+    private fun goToDashboard() {
+        startActivity(
+            Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+        )
+        finish()
     }
 }

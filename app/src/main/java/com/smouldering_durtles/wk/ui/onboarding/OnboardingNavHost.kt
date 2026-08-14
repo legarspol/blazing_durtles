@@ -2,6 +2,7 @@ package com.smouldering_durtles.wk.ui.onboarding
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,6 +34,7 @@ fun OnboardingNavHost(
     settingsTapped: Boolean,
     token: String,
     canContinue: Boolean,
+    onWelcomeShown: () -> Unit,
     onOpenWaniKaniSettings: () -> Unit,
     onTokenChange: (String) -> Unit,
     onContinue: () -> Unit,
@@ -42,6 +44,9 @@ fun OnboardingNavHost(
     NavHost(navController, startDestination = start.route) {
         composable(OnboardingDestination.Welcome.route) {
             BackHandler(onBack = onExit)
+            // Marked seen on display rather than on "Get started": the screen has done its job
+            // once it has been read, and a user who leaves here is a returning user next time.
+            LaunchedEffect(Unit) { onWelcomeShown() }
             WelcomeScreen(
                 onGetStarted = { navController.navigate(OnboardingDestination.Connect.route) },
             )
