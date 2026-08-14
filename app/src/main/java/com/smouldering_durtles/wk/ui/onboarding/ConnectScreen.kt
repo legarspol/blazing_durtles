@@ -65,7 +65,7 @@ fun ConnectScreen(
             ) {
                 Text(
                     OnboardingStrings.connectIntro,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = BdTheme.colors.textSecondary,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
@@ -173,7 +173,7 @@ private fun PrivacyNote(modifier: Modifier = Modifier) {
             Spacer(Modifier.size(11.dp))
             Text(
                 text,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Normal),
+                style = MaterialTheme.typography.bodyMedium,
                 color = BdTheme.colors.textSecondary,
             )
         }

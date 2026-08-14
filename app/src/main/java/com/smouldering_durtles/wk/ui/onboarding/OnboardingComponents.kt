@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
-import com.smouldering_durtles.wk.ui.theme.JetBrainsMono
+import com.smouldering_durtles.wk.ui.theme.Roboto
 
 /**
  * How much visual weight a call to action carries.
@@ -129,7 +129,7 @@ fun StepBadge(number: Int) {
     }
 }
 
-/** A permission scope pill: green check plus the scope name in monospace. */
+/** A permission scope pill: green check plus the scope name. */
 @Composable
 fun PermissionChip(scope: String) {
     Surface(shape = RoundedCornerShape(11.dp), color = BdTheme.colors.surfaceChip) {
@@ -146,9 +146,9 @@ fun PermissionChip(scope: String) {
             )
             Text(
                 scope,
-                fontFamily = JetBrainsMono,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontFamily = Roboto,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 color = BdTheme.colors.emberInk,
             )
         }

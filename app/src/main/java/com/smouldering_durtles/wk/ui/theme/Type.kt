@@ -34,6 +34,20 @@ val JetBrainsMono = FontFamily(
     Font(R.font.jetbrains_mono_semibold, FontWeight.SemiBold),
 )
 
+/**
+ * Roboto, for body and supporting copy.
+ *
+ * Nothing is bundled for this: Roboto is the Android system typeface and Material 3's default,
+ * so [FontFamily.Default] already resolves to it, with 400/500/700 all available. Shipping our
+ * own copy would add weight for a face the platform already has, and would stop following the
+ * user's device font settings.
+ *
+ * The split is deliberate: Plus Jakarta Sans carries the brand at display sizes — titles,
+ * headings, button labels — while running text falls back to the face Android reads best at
+ * small sizes.
+ */
+val Roboto = FontFamily.Default
+
 /** Material 3 type scale tuned to the design's sizes. */
 val BdTypography = Typography(
     displaySmall = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp, lineHeight = 38.sp, letterSpacing = (-0.6).sp),
@@ -41,8 +55,11 @@ val BdTypography = Typography(
     titleLarge = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 26.sp),
     titleMedium = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, lineHeight = 22.sp),
     titleSmall = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 15.5f.sp, lineHeight = 20.sp),
-    bodyLarge = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
-    bodyMedium = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Normal, fontSize = 13.5f.sp, lineHeight = 20.sp),
+    // Body copy is one size and one face everywhere: Roboto 14sp on a 20sp line. bodyLarge and
+    // bodyMedium are deliberately identical so that whichever a screen reaches for, running text
+    // reads the same — the Material scale's distinction between them buys nothing here.
+    bodyLarge = TextStyle(fontFamily = Roboto, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+    bodyMedium = TextStyle(fontFamily = Roboto, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
     labelLarge = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 16.sp, lineHeight = 20.sp),
     labelMedium = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 12.5f.sp, lineHeight = 16.sp),
     labelSmall = TextStyle(fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 11.5f.sp, lineHeight = 14.sp, letterSpacing = 0.3.sp),

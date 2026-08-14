@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,7 +52,7 @@ fun EnterTokenScreen(
             Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 26.dp)) {
                 Text(
                     OnboardingStrings.enterTokenIntro,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = BdTheme.colors.textSecondary,
                     modifier = Modifier.padding(top = 10.dp, bottom = 26.dp),
                 )
@@ -103,9 +102,7 @@ fun EnterTokenScreen(
 
                 Text(
                     OnboardingStrings.tokenFieldHelper,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Normal
-                    ),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = BdTheme.colors.textSecondary,
                     modifier = Modifier.padding(start = 14.dp, top = 8.dp),
                 )
