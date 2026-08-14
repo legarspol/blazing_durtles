@@ -12,26 +12,19 @@ import androidx.compose.ui.unit.sp
 import com.smouldering_durtles.wk.R
 
 /**
- * Fonts: Plus Jakarta Sans (UI) and JetBrains Mono (API tokens and permission scopes).
+ * Plus Jakarta Sans, the one bundled family — the brand voice at display sizes.
  *
- * These are bundled as static faces in `res/font/` rather than pulled from Google Fonts at
- * runtime. Downloadable fonts need Play Services, and onboarding is the one flow that runs
- * before the app has ever reached the network — a device without Play Services would silently
- * fall back to the system face and lose the brand identity on the very first screen.
+ * It is bundled as static faces in `res/font/` rather than pulled from Google Fonts at runtime.
+ * Downloadable fonts need Play Services, and onboarding is the one flow that runs before the app
+ * has ever reached the network — a device without Play Services would silently fall back to the
+ * system face and lose the brand identity on the very first screen.
  *
- * Only the weights actually used are shipped. Plus Jakarta Sans needs Normal/Bold/ExtraBold for
- * [BdTypography]; JetBrains Mono needs Medium/SemiBold for the permission chips and the token
- * field. Both families are OFL-1.1 — see `assets/licenses/`.
+ * Only the weights [BdTypography] actually asks for are shipped: Bold and ExtraBold. Body copy
+ * is set in [Roboto], so nothing requests Normal. OFL-1.1 — see `assets/licenses/`.
  */
 val Jakarta = FontFamily(
-    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
     Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold),
     Font(R.font.plus_jakarta_sans_extrabold, FontWeight.ExtraBold),
-)
-
-val JetBrainsMono = FontFamily(
-    Font(R.font.jetbrains_mono_medium, FontWeight.Medium),
-    Font(R.font.jetbrains_mono_semibold, FontWeight.SemiBold),
 )
 
 /**

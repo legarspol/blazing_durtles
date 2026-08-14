@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
-import com.smouldering_durtles.wk.ui.theme.JetBrainsMono
 
 /**
  * The token input.
@@ -82,10 +81,9 @@ fun EnterTokenScreen(
                             )
                         }
                     },
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        fontFamily = JetBrainsMono,
-                        fontSize = 16.sp,
-                    ),
+                    // 16sp rather than the 14sp body size: this is the one string the user has
+                    // to check character by character before committing to it.
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Ascii,
                         imeAction = ImeAction.Done,
