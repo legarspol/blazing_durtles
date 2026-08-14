@@ -19,7 +19,9 @@ kotlinxDatetime = "0.6.1"
 kotlinxCoroutines = "1.9.0"
 
 # AndroidX — UI / lifecycle (legacy View stack, slated for Compose in Phase 4)
-activity = "1.6.0"
+# activity 1.9+ is required by activity-compose under Compose BOM 2024.09, and enableEdgeToEdge()
+# arrived in 1.8. The ref is shared with activity-ktx, so this bump reaches every legacy Activity.
+activity = "1.9.3"
 fragment = "1.3.6"
 appcompat = "1.6.1"
 constraintlayout = "2.1.4"
