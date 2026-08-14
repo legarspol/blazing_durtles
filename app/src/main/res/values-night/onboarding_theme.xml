@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Night variant of the Compose host's window theme — the first values-night/ resource in the app.
+  Keeps the pre-first-frame window background in step with the dark palette that
+  BlazingDurtlesTheme selects from isSystemInDarkTheme(), which is driven by the same system
+  night-mode flag that qualifies this folder.
+-->
+<resources>
+    <color name="onboardingWindowBackground">#17120F</color>
+
+    <style name="OnboardingTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/onboardingWindowBackground</item>
+    </style>
+</resources>

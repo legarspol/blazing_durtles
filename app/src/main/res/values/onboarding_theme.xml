@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Window theme for the Compose host.
+
+  The application theme is Theme.AppCompat.Light.NoActionBar — always light, and the app has no
+  values-night/ anywhere. A Compose activity inheriting it would paint a white windowBackground
+  before the first frame, so a dark-mode cold start flashes white. This theme exists only to set
+  that background; everything else the screens draw comes from BlazingDurtlesTheme.
+
+  The colours mirror Surface / SurfaceDark in ui/theme/Color.kt. They are duplicated rather than
+  shared because a Compose Color cannot be referenced from a resource, and the window is painted
+  by the platform before any Compose code runs.
+-->
+<resources>
+    <color name="onboardingWindowBackground">#FFF8F5</color>
+
+    <style name="OnboardingTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/onboardingWindowBackground</item>
+    </style>
+</resources>

@@ -62,10 +62,18 @@
             android:parentActivityName=".activities.MainActivity">
             <meta-data android:name="android.app.default_searchable" android:value=".activities.BrowseActivity"/>
         </activity>
+        <!--
+          No parentActivityName: onboarding is launched over a MainActivity that bounces straight
+          back here while the token is missing, so an up-arrow would flicker between the two.
+          adjustResize lets Modifier.imePadding() lift the token screen's button clear of the
+          keyboard.
+        -->
         <activity
-            android:name=".activities.NoApiKeyHelpActivity"
-            android:label="Enter V2 API token"
-            android:parentActivityName=".activities.MainActivity"/>
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false"
+            android:label="Set up Blazing Durtles"
+            android:theme="@style/OnboardingTheme"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".activities.TestActivity"
             android:label="Test"

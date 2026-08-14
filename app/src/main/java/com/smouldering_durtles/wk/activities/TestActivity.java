@@ -20,6 +20,7 @@ import static com.smouldering_durtles.wk.util.ObjectSupport.runAsync;
 import static com.smouldering_durtles.wk.util.ObjectSupport.safe;
 import static java.util.Objects.requireNonNull;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -70,7 +71,6 @@ public final class TestActivity extends AbstractActivity {
         new ViewProxy(this, R.id.generatePitchInfoButton).setOnClickListener(v -> generatePitchInfo());
         new ViewProxy(this, R.id.checkPitchInfoButton).setOnClickListener(v -> checkPitchInfo());
         new ViewProxy(this, R.id.testButton).setOnClickListener(v -> theButton());
-        new ViewProxy(this, R.id.testButton2).setOnClickListener(v -> theButton2());
         new ViewProxy(this, R.id.crashButton).setOnClickListener(v -> crashButtonClicked());
         new ViewProxy(this, R.id.caughtExceptionButton).setOnClickListener(v -> caughtExceptionButtonClicked());
 
@@ -210,14 +210,6 @@ public final class TestActivity extends AbstractActivity {
             LOGGER.info("Test button clicked!");
             document.setText("Click!");
             goToActivity(DigraphHelpActivity.class);
-        });
-    }
-
-    private void theButton2() {
-        safe(() -> {
-            LOGGER.info("Test button 2 clicked!");
-            document.setText("Click 2!");
-            goToActivity(NoApiKeyHelpActivity.class);
         });
     }
 

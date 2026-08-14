@@ -3638,5 +3638,27 @@ public final class GlobalSettings {
             editor.putBoolean("notification_permission_asked", value);
             editor.apply();
         }
+
+        /**
+         * Whether the onboarding welcome screen has been shown. It is brand recognition, so it
+         * appears once per install; a user coming back because their token expired starts at the
+         * "connect your account" step instead.
+         *
+         * @return the value
+         */
+        public static boolean getWelcomeDismissed() {
+            return prefs().getBoolean("welcome_dismissed", false);
+        }
+
+        /**
+         * Whether the onboarding welcome screen has been shown.
+         *
+         * @param value the value
+         */
+        public static void setWelcomeDismissed(final boolean value) {
+            final SharedPreferences.Editor editor = prefs().edit();
+            editor.putBoolean("welcome_dismissed", value);
+            editor.apply();
+        }
     }
 }
