@@ -118,20 +118,6 @@
                 style="@style/WK.TextView.Normal"/>
 
             <Button
-                android:id="@+id/testButton2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Open no-API-key help"
-                style="@style/WK.Button.Normal"
-                tools:ignore="UnusedIds"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Scratch button: opens NoApiKeyHelpActivity."
-                style="@style/WK.TextView.Normal"/>
-
-            <Button
                 android:id="@+id/crashButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -142,24 +142,6 @@ public final class Constants {
     public static final String FONTS_DIRECTORY_NAME = "fonts";
 
     /**
-     * Document to show when the user has not yet provided an API key.
-     */
-    public static final String NO_API_KEY_HELP_DOCUMENT = "<h3>Welcome to " + Identification.APP_NAME+ " " + BuildConfig.VERSION_NAME + "!</h3><br/> "
-            + Identification.APP_NAME + " is an app for <a href=\"https://www.wanikani.com/\">WaniKani</a>, the kanji learning"
-            + " service created by <a href=\"https://www.tofugu.com/\">Tofugu</a>.<br/><br/>"
-            + " To be able to use this app, you must have an active WaniKani account and a valid API token."
-            + " You haven't provided a token yet, or it's expired, so please provide one now to continue. <br/><br/> "
-            + " The only personal data this app stores is your API key, which is used solely for accessing WaniKani’s service. A full privacy policy is available <a href=\"https://raw.githubusercontent.com/legarspol/blazing_durtles/refs/heads/main/PRIVACY-POLICY.md\">here</a>.<br/><br/> "
-            + " If you've not got an account, visit <a href=\"https://www.wanikani.com/\">WaniKani</a> to make one.<br/><br/>"
-            + " To create a token, go to your <a href=\"https://www.wanikani.com/settings/personal_access_tokens\">settings page</a>."
-            + " Click 'Generate a new token' and when prompted make sure to give the token at least these permissions:<br/><br/>"
-            + " - <tt>assignments:start</tt><br/>"
-            + " - <tt>reviews:create</tt><br/>"
-            + " - <tt>study_materials:create</tt><br/>"
-            + " - <tt>study_materials:update</tt><br/><br/>"
-            + " Then, copy the token and paste it into the input field above.";
-
-    /**
      * Document to show on the about screen.
      */
     public static final String ABOUT_DOCUMENT = "<h3>Welcome to " + Identification.APP_NAME + " " + BuildConfig.VERSION_NAME + "!</h3><br/> "

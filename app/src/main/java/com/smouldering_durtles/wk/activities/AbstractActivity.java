@@ -77,6 +77,7 @@ import com.smouldering_durtles.wk.livedata.LiveTaskCounts;
 import com.smouldering_durtles.wk.model.Session;
 import com.smouldering_durtles.wk.model.TaskCounts;
 import com.smouldering_durtles.wk.services.JobRunnerService;
+import com.smouldering_durtles.wk.ui.onboarding.OnboardingActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -303,7 +304,9 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
             if (!showWithoutApiKey()) {
                 final @Nullable String apiKey = GlobalSettings.Api.getApiKey();
                 if (isEmpty(apiKey)) {
-                    goToActivity(NoApiKeyHelpActivity.class);
+                    // Not goToActivity(): that takes a Class<? extends AbstractActivity>, and
+                    // the onboarding host deliberately does not extend this class.
+                    startActivity(new Intent(this, OnboardingActivity.class));
                 }
             }
 
@@ -922,7 +925,7 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
     /**
      * Can this activity be activated without entering an API key?
      *
-     * @return False if showing this activity should bounde to the NoApiKeyHelpActivity.
+     * @return False if showing this activity should bounce to the onboarding flow.
      */
     protected abstract boolean showWithoutApiKey();
 }

@@ -62,10 +62,6 @@
             android:parentActivityName=".activities.MainActivity">
             <meta-data android:name="android.app.default_searchable" android:value=".activities.BrowseActivity"/>
         </activity>
-        <activity
-            android:name=".activities.NoApiKeyHelpActivity"
-            android:label="Enter V2 API token"
-            android:parentActivityName=".activities.MainActivity"/>
         <!--
           No parentActivityName: onboarding is launched over a MainActivity that bounces straight
           back here while the token is missing, so an up-arrow would flicker between the two.

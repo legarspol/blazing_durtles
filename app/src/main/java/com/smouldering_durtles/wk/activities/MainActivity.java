@@ -223,7 +223,7 @@ public final class MainActivity extends AbstractActivity {
      * skip this, since {@link GlobalSettings.Diagnostics#getConsentRequested()} is set.
      *
      * <p>This runs from onResume rather than onCreate: without an API key, onResume
-     * bounces straight to NoApiKeyHelpActivity, which would bury a dialog created here.
+     * bounces straight to the onboarding flow, which would bury a dialog created here.
      * Asking on resume means the user sees it once they actually land on this screen.
      */
     private void maybeShowDiagnosticsConsent() {

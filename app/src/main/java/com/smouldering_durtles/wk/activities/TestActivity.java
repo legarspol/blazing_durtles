@@ -33,7 +33,6 @@ import com.smouldering_durtles.wk.diagnostics.Diagnostics;
 import com.smouldering_durtles.wk.enums.SubjectType;
 import com.smouldering_durtles.wk.model.PitchInfo;
 import com.smouldering_durtles.wk.proxy.ViewProxy;
-import com.smouldering_durtles.wk.ui.onboarding.OnboardingActivity;
 import com.smouldering_durtles.wk.util.Logger;
 import com.smouldering_durtles.wk.util.PitchInfoUtil;
 import com.smouldering_durtles.wk.util.ReferenceDataUtil;
@@ -72,7 +71,6 @@ public final class TestActivity extends AbstractActivity {
         new ViewProxy(this, R.id.generatePitchInfoButton).setOnClickListener(v -> generatePitchInfo());
         new ViewProxy(this, R.id.checkPitchInfoButton).setOnClickListener(v -> checkPitchInfo());
         new ViewProxy(this, R.id.testButton).setOnClickListener(v -> theButton());
-        new ViewProxy(this, R.id.testButton2).setOnClickListener(v -> theButton2());
         new ViewProxy(this, R.id.crashButton).setOnClickListener(v -> crashButtonClicked());
         new ViewProxy(this, R.id.caughtExceptionButton).setOnClickListener(v -> caughtExceptionButtonClicked());
 
@@ -212,17 +210,6 @@ public final class TestActivity extends AbstractActivity {
             LOGGER.info("Test button clicked!");
             document.setText("Click!");
             goToActivity(DigraphHelpActivity.class);
-        });
-    }
-
-    private void theButton2() {
-        safe(() -> {
-            LOGGER.info("Test button 2 clicked!");
-            document.setText("Click 2!");
-            // Temporary: onboarding is not yet wired into the API-key gate, and this scratch
-            // button is the only way to reach it on a device. Both it and this activity's
-            // button go away when the routing flip lands.
-            startActivity(new Intent(this, OnboardingActivity.class));
         });
     }
 
