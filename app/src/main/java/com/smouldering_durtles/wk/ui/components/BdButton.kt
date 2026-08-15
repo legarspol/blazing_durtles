@@ -17,6 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,11 +58,22 @@ fun BdButton(
             disabledContentColor = BdTheme.colors.textDisabled,
         )
     }
+    val shape = RoundedCornerShape(28.dp)
+    // Only the live primary action lifts off the page — a tonal or disabled button stays flat,
+    // as the design boards have them. The shadow is tinted with primary rather than left black:
+    // in light theme that warms it, and in dark theme it is what makes the ember glow under the
+    // button. API 27 and below ignore the tint and draw an ordinary black shadow.
+    val lift = if (emphasis == ButtonEmphasis.Filled && enabled) 12.dp else 0.dp
+    val shadowColor = MaterialTheme.colorScheme.primary
+
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().height(56.dp),
-        shape = RoundedCornerShape(28.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .shadow(lift, shape, ambientColor = shadowColor, spotColor = shadowColor),
+        shape = shape,
         colors = colors,
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)

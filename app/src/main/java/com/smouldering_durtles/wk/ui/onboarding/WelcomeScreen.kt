@@ -39,6 +39,7 @@ import com.smouldering_durtles.wk.ui.theme.overlineStyle
 fun WelcomeScreen(onGetStarted: () -> Unit) {
     val glow = BdTheme.colors.container
     val base = MaterialTheme.colorScheme.background
+    val shadowTint = MaterialTheme.colorScheme.primary
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Box(
@@ -74,7 +75,16 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
                         contentDescription = OnboardingStrings.mascotDescription,
                         modifier = Modifier
                             .size(152.dp)
-                            .shadow(24.dp, RoundedCornerShape(38.dp), clip = false)
+                            // Tinted with primary for the same reason the button's is: sampled off
+                            // the design board, the shadow under the mascot is the ember colour at
+                            // roughly a third alpha, not neutral grey.
+                            .shadow(
+                                elevation = 24.dp,
+                                shape = RoundedCornerShape(38.dp),
+                                clip = false,
+                                ambientColor = shadowTint,
+                                spotColor = shadowTint,
+                            )
                             .clip(RoundedCornerShape(38.dp)),
                     )
                     Text(
