@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.smouldering_durtles.wk.R
+import com.smouldering_durtles.wk.ui.components.BdButton
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 import com.smouldering_durtles.wk.ui.theme.overlineStyle
@@ -82,7 +83,7 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }
-                OnboardingButton(
+                BdButton(
                     text = OnboardingStrings.getStarted,
                     onClick = onGetStarted,
                     trailingIcon = Icons.AutoMirrored.Rounded.ArrowForward,

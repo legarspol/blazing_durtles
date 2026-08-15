@@ -32,6 +32,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.smouldering_durtles.wk.ui.components.BdButton
+import com.smouldering_durtles.wk.ui.components.BdTopBar
+import com.smouldering_durtles.wk.ui.components.ButtonEmphasis
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 
@@ -55,7 +58,7 @@ fun ConnectScreen(
 ) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
-            OnboardingTopBar(OnboardingStrings.connectTitle)
+            BdTopBar(OnboardingStrings.connectTitle)
             Column(
                 Modifier
                     .weight(1f)
@@ -96,13 +99,13 @@ fun ConnectScreen(
                 Modifier.fillMaxWidth().padding(horizontal = 26.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                OnboardingButton(
+                BdButton(
                     text = OnboardingStrings.openWaniKaniSettings,
                     onClick = onOpenSettings,
                     emphasis = if (settingsTapped) ButtonEmphasis.Tonal else ButtonEmphasis.Filled,
                     trailingIcon = Icons.Rounded.OpenInNew,
                 )
-                OnboardingButton(
+                BdButton(
                     text = OnboardingStrings.haveMyToken,
                     onClick = onHaveToken,
                     emphasis = if (settingsTapped) ButtonEmphasis.Filled else ButtonEmphasis.Tonal,
