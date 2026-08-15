@@ -21,19 +21,24 @@ data class SyncRow(
  *
  * [lastPriority] is the inclusive upper bound of the group. The lower bound is implied by the
  * previous entry, which is what keeps the groups gapless.
+ *
+ * [weight] is each row's share of the progress bar. Deliberately not an even quarter each: the
+ * subject corpus is around 9,400 of the roughly 9,500 items a first sync moves, and it takes
+ * correspondingly most of the wall clock. Splitting the bar evenly left it crawling across a
+ * single quarter for almost the whole sync and then jumping to full, which reads as broken.
  */
-enum class SyncGroup(val label: String, val lastPriority: Int) {
+enum class SyncGroup(val label: String, val lastPriority: Int, val weight: Float) {
     /** Reference data (1) and the user fetch (2). */
-    Profile(SyncStrings.rowProfile, 2),
+    Profile(SyncStrings.rowProfile, 2, 0.05f),
 
     /** SRS systems (10) and subjects (20) - the corpus, and by far the longest stage. */
-    Subjects(SyncStrings.rowSubjects, 20),
+    Subjects(SyncStrings.rowSubjects, 20, 0.75f),
 
     /** Assignments (21), review statistics (22) and study materials (23) - the user's own progress. */
-    Assignments(SyncStrings.rowAssignments, 23),
+    Assignments(SyncStrings.rowAssignments, 23, 0.15f),
 
     /** The summary (25) and level progressions (26), which is what the timeline is built from. */
-    Forecast(SyncStrings.rowForecast, 26),
+    Forecast(SyncStrings.rowForecast, 26, 0.05f),
 }
 
 /**

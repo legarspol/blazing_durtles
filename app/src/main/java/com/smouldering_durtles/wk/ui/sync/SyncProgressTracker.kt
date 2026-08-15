@@ -7,113 +7,142 @@ import com.smouldering_durtles.wk.data.sync.SyncSnapshot
  *
  * The accumulation is the entire reason this class exists. `LiveApiProgress` reports the *current*
  * stage only and zeroes itself between stages, so nothing downstream can see a whole-sync total
- * without remembering what each finished stage contributed. Since a stage's numbers are gone the
- * instant the next one starts, the tracker holds on to the last figures it saw for the stage in
- * flight and folds those in when the queue moves on.
+ * without remembering what each finished stage contributed.
+ *
+ * It remembers per stage *name*, keeping each stage's high-water mark. Both of the alternatives
+ * were tried against a real sync and both over-counted. Adding a stage's figures to a running sum
+ * when the queue moved past it counted the subject corpus twice, because the queue enqueues
+ * follow-up work after draining and so revisits priorities. Keying the same high-water map by
+ * queue priority instead *also* double counted, because a task deletes its own row before
+ * `LiveApiProgress` stops reporting its numbers - so the queue's minimum priority moves on while
+ * nine thousand subjects are still streaming, and the figures land under two different keys.
+ *
+ * The stage name comes off the same object as the numbers, so the two cannot drift apart. The
+ * queue is still the right source for *ordering* the rows, just not for counting.
  *
  * Stateful by necessity, but deliberately not a ViewModel and not Android-aware: feed it a list of
  * snapshots and assert on what comes out.
  */
 class SyncProgressTracker {
 
-    private companion object {
-        /** No stage seen yet - distinct from -1, which means the queue has drained. */
-        const val NOT_STARTED = Int.MIN_VALUE
-    }
-
-    private var currentPriority = NOT_STARTED
-    private var lastTotal = 0
-    private var lastProcessed = 0
-
-    private var completedItems = 0
-    private var knownTotal = 0
-    private val finishedPerGroup = mutableMapOf<SyncGroup, Int>()
+    private val processedByStage = mutableMapOf<String, Int>()
+    private val totalByStage = mutableMapOf<String, Int>()
 
     /** The bar is clamped to its own high-water mark; see [progressFor]. */
     private var highWaterMark = 0f
 
     fun accept(snapshot: SyncSnapshot): SyncUiState {
-        if (snapshot.nextPriority != currentPriority) {
-            if (currentPriority != NOT_STARTED) {
-                fold(currentPriority, lastTotal, lastProcessed)
-            }
-            currentPriority = snapshot.nextPriority
-            lastTotal = 0
-            lastProcessed = 0
-        }
-        // Only ever move these up. A snapshot taken just after a stage reset reports zeroes, and
-        // treating that as "the stage shrank" is what would make the display stutter.
-        if (snapshot.totalCount > lastTotal) {
-            lastTotal = snapshot.totalCount
-        }
-        if (snapshot.processedCount > lastProcessed) {
-            lastProcessed = snapshot.processedCount
-        }
+        record(snapshot)
 
-        val runningIndex = runningIndexFor(snapshot.nextPriority)
+        val running = runningGroup(snapshot)
+        val runningIndex = running?.ordinal
         return SyncUiState(
             visible = snapshot.firstTimeSetup,
-            progress = progressFor(runningIndex),
-            itemsSynced = completedItems + lastProcessed,
-            itemsTotal = knownTotal + lastTotal,
-            rows = SyncGroup.entries.mapIndexed { index, group -> rowFor(group, index, runningIndex) },
+            progress = progressFor(running, snapshot.entityName),
+            itemsSynced = processedByStage.values.sum(),
+            itemsTotal = totalByStage.values.sum(),
+            rows = SyncGroup.entries.mapIndexed { index, group ->
+                rowFor(group, index, runningIndex, snapshot.entityName)
+            },
         )
     }
 
-    private fun fold(priority: Int, total: Int, processed: Int) {
-        if (priority < 0) {
+    private fun record(snapshot: SyncSnapshot) {
+        val stage = snapshot.entityName
+        if (stage.isEmpty()) {
             return
         }
-        completedItems += processed
-        // A stage that processed items without reporting a total still contributed to the sync, so
+        // Only ever move these up. A snapshot taken just after a stage reset reports zeroes, and
+        // treating that as "the stage shrank" is what would make the display stutter.
+        processedByStage[stage] = maxOf(processedByStage[stage] ?: 0, snapshot.processedCount)
+        // A stage that processes items without reporting a total still contributed to the sync, so
         // count what it did rather than letting the denominator fall behind the numerator.
-        knownTotal += maxOf(total, processed)
-        groupFor(priority)?.let { finishedPerGroup[it] = (finishedPerGroup[it] ?: 0) + processed }
+        totalByStage[stage] =
+            maxOf(totalByStage[stage] ?: 0, snapshot.totalCount, snapshot.processedCount)
     }
 
-    private fun groupFor(priority: Int): SyncGroup? =
-        SyncGroup.entries.firstOrNull { priority <= it.lastPriority }
-
-    /** Index of the group currently running, or null once the queue has drained. */
-    private fun runningIndexFor(nextPriority: Int): Int? {
-        if (nextPriority < 0) {
+    /**
+     * Which row is running. The stage name wins when there is one, so that the highlighted row and
+     * the figures beside it always describe the same thing; the queue's next priority is the
+     * fallback for the single-entity stages (the user fetch, the summary) that report no name.
+     */
+    private fun runningGroup(snapshot: SyncSnapshot): SyncGroup? {
+        if (snapshot.nextPriority < 0) {
             return null
         }
-        val index = SyncGroup.entries.indexOfFirst { nextPriority <= it.lastPriority }
-        return if (index < 0) null else index
+        return SyncStages.groupOf(snapshot.entityName)
+            ?: SyncGroup.entries.firstOrNull { snapshot.nextPriority <= it.lastPriority }
     }
 
-    private fun progressFor(runningIndex: Int?): Float {
-        val raw = if (runningIndex == null) {
+    private fun progressFor(running: SyncGroup?, stage: String): Float {
+        val raw = if (running == null) {
             1f
         } else {
-            val withinStage = if (lastTotal > 0) lastProcessed.toFloat() / lastTotal else 0f
-            (runningIndex + withinStage.coerceIn(0f, 1f)) / SyncGroup.entries.size
+            val before = SyncGroup.entries.take(running.ordinal).sumOf { it.weight.toDouble() }
+            before.toFloat() + running.weight * fractionWithin(stage)
         }
-        // A group can cover more than one stage - "Subjects & mnemonics" covers SRS systems and
-        // then subjects - and the within-stage fraction drops back to zero at each handover. The
-        // bar is clamped so that internal reset never reads as the sync losing ground.
+        // A row can cover more than one stage - "Subjects & mnemonics" covers SRS systems and then
+        // subjects - and the within-stage fraction drops back to zero at each handover. The bar is
+        // clamped so that internal reset never reads as the sync losing ground.
         highWaterMark = maxOf(highWaterMark, raw)
         return highWaterMark
     }
 
-    private fun rowFor(group: SyncGroup, index: Int, runningIndex: Int?): SyncRow {
+    private fun fractionWithin(stage: String): Float {
+        val total = totalByStage[stage] ?: 0
+        if (total <= 0) {
+            return 0f
+        }
+        return ((processedByStage[stage] ?: 0).toFloat() / total).coerceIn(0f, 1f)
+    }
+
+    private fun rowFor(group: SyncGroup, index: Int, runningIndex: Int?, stage: String): SyncRow {
         val status = when {
             runningIndex == null || index < runningIndex -> SyncRowStatus.Done
             index == runningIndex -> SyncRowStatus.Running
             else -> SyncRowStatus.Waiting
         }
-        return SyncRow(group.label, status, detailFor(group, status))
+        return SyncRow(group.label, status, detailFor(group, status, stage))
     }
 
-    private fun detailFor(group: SyncGroup, status: SyncRowStatus): String = when (status) {
-        SyncRowStatus.Waiting -> SyncStrings.waiting
-        // Single-entity stages (the user fetch, the summary) report no counts at all, so a running
-        // row can legitimately have nothing to say; the spinner carries it.
-        SyncRowStatus.Running -> if (lastTotal > 0) SyncStrings.ratio(lastProcessed, lastTotal) else ""
-        SyncRowStatus.Done -> {
-            val finished = finishedPerGroup[group] ?: 0
-            if (finished > 0) SyncStrings.count(finished) else SyncStrings.done
+    private fun detailFor(group: SyncGroup, status: SyncRowStatus, stage: String): String =
+        when (status) {
+            SyncRowStatus.Waiting -> SyncStrings.waiting
+            // Single-entity stages (the user fetch, the summary) report no counts at all, so a
+            // running row can legitimately have nothing to say; the spinner carries it.
+            SyncRowStatus.Running -> {
+                val total = totalByStage[stage] ?: 0
+                if (total > 0) SyncStrings.ratio(processedByStage[stage] ?: 0, total) else ""
+            }
+            SyncRowStatus.Done -> {
+                val finished = itemsIn(group)
+                if (finished > 0) SyncStrings.count(finished) else SyncStrings.done
+            }
         }
-    }
+
+    private fun itemsIn(group: SyncGroup): Int = processedByStage.entries
+        .filter { SyncStages.groupOf(it.key) == group }
+        .sumOf { it.value }
+}
+
+/**
+ * The names `LiveApiProgress` is given for each stage, and the row each belongs to.
+ *
+ * These are the exact strings the tasks pass to `LiveApiProgress.reset`, capitalisation included -
+ * "Level progression" really does have the odd capital, and "statistics" really is the label for
+ * review statistics. They are matched rather than parsed, so an unrecognised name simply falls
+ * through to the queue-priority path instead of landing in the wrong row.
+ */
+object SyncStages {
+    private val groups = mapOf(
+        "reference data" to SyncGroup.Profile,
+        "SRS systems" to SyncGroup.Subjects,
+        "subjects" to SyncGroup.Subjects,
+        "assignments" to SyncGroup.Assignments,
+        "statistics" to SyncGroup.Assignments,
+        "study materials" to SyncGroup.Assignments,
+        "Level progression" to SyncGroup.Forecast,
+    )
+
+    fun groupOf(entityName: String): SyncGroup? = groups[entityName]
 }
