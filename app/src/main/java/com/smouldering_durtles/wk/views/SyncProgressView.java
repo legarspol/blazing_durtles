@@ -22,6 +22,7 @@ import android.util.AttributeSet;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.smouldering_durtles.wk.GlobalSettings;
 import com.smouldering_durtles.wk.R;
 import com.smouldering_durtles.wk.livedata.LiveApiProgress;
 import com.smouldering_durtles.wk.livedata.LiveFirstTimeSetup;
@@ -71,6 +72,14 @@ public final class SyncProgressView extends AppCompatTextView {
      * Update the text.
      */
     private void update() {
+        // On a first run the new sync screen above the dashboard says all of this, in more detail.
+        // This view already observed LiveFirstTimeSetup without ever reading it - the observer was
+        // registered purely to trigger a repaint - so the signal was here all along.
+        if (GlobalSettings.getFirstTimeSetup() == 0) {
+            setVisibility(GONE);
+            return;
+        }
+
         if (LiveTaskCounts.getInstance().get().isEmpty()) {
             setVisibility(GONE);
             return;

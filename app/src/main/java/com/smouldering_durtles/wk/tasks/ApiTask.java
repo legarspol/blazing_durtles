@@ -432,6 +432,8 @@ public abstract class ApiTask {
      */
     protected static <T extends WaniKaniEntity> boolean collectionApiCall(final String uri, final Class<? extends T> cls, final Consumer<T> consumer) {
         final AppDatabase db = WkApplication.getDatabase();
+        final long startedAt = System.currentTimeMillis();
+        int numPages = 0;
         try {
             @Nullable String nextUrl = uri;
             while (nextUrl != null) {
@@ -444,6 +446,13 @@ public abstract class ApiTask {
                     LiveApiState.getInstance().forceUpdate();
                     return false;
                 }
+                numPages++;
+                // The API reports the size of the whole collection on every page. Taking it from
+                // the first one gives a denominator that is right from the start, instead of one
+                // that grows a page at a time.
+                if (numPages == 1 && body.has("total_count")) {
+                    LiveApiProgress.setTotalCount(body.get("total_count").asInt());
+                }
                 final JsonNode data = body.get("data");
                 LiveApiProgress.addEntities(data.size());
                 for (final JsonNode element: data) {
@@ -452,6 +461,9 @@ public abstract class ApiTask {
                 }
                 nextUrl = getNextUrl(body);
             }
+            LOGGER.info("[sync] stage=%s total=%d pages=%d ms=%d",
+                    LiveApiProgress.getEntityName(), LiveApiProgress.getTotalCount(), numPages,
+                    System.currentTimeMillis() - startedAt);
             return true;
         } catch (final Exception e) {
             LOGGER.error(e, "API data error");

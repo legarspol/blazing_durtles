@@ -90,6 +90,12 @@ androidx-compose-foundation = { module = "androidx.compose.foundation:foundation
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+# collectAsStateWithLifecycle. It already resolves transitively, but a Compose screen driven by a
+# Flow should not depend on that being an accident of another artifact's dependencies.
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+# LiveData.asFlow(), which is how the new Compose code reads the legacy LiveData singletons. Only
+# lifecycle-livedata (no -ktx) resolves today, so the extension is genuinely absent without this.
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
 
 # AndroidX — platform / data
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }

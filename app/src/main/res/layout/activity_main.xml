@@ -168,16 +168,17 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.smouldering_durtles.wk.views.FirstTimeSetupView
-        android:id="@+id/firstTimeSetupView"
+    <!--
+        The first-run sync screen, in place of the FirstTimeSetupView banner it replaces. It takes
+        wrap_content rather than a weight because the NestedScrollView below already claims
+        layout_weight="1"; two weighted siblings would split the screen between them. Everything
+        inside that scroll view hides itself while first-time setup runs, so it contributes no
+        height and this reads as filling the space under the toolbar.
+    -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/firstSyncView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
         android:visibility="gone"/>
 
     <androidx.core.widget.NestedScrollView

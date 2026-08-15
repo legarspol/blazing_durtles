@@ -35,6 +35,7 @@ public final class LiveApiProgress extends ConservativeLiveData<Object> {
     private boolean show = false;
     private String entityName = "";
     private int numEntities = 0;
+    private int totalCount = 0;
     private int numProcessedEntities = 0;
     private int lastReportedCount = 0;
     private boolean syncReminder = false;
@@ -76,6 +77,25 @@ public final class LiveApiProgress extends ConservativeLiveData<Object> {
     }
 
     /**
+     * Report the true size of the collection the current task is fetching, as the API itself
+     * reports it in <code>total_count</code>.
+     *
+     * <p>
+     *     This is deliberately separate from numEntities. That one accumulates a page at a time,
+     *     so it is only ever "how much have we seen so far" and a display built on it counts
+     *     against a denominator that keeps moving. SyncProgressView reads numEntities and has to
+     *     keep behaving exactly as it does today, so the honest total arrives alongside it rather
+     *     than replacing it.
+     * </p>
+     *
+     * @param num the total number of entities in the collection
+     */
+    public static void setTotalCount(final int num) {
+        instance.totalCount = num;
+        instance.postValue(new Object());
+    }
+
+    /**
      * Report that one more entity has been processed by the current task.
      */
     public static void addProcessedEntity() {
@@ -98,6 +118,7 @@ public final class LiveApiProgress extends ConservativeLiveData<Object> {
         instance.show = show;
         instance.entityName = entityName;
         instance.numEntities = 0;
+        instance.totalCount = 0;
         instance.numProcessedEntities = 0;
         instance.lastReportedCount = 0;
         instance.postValue(new Object());
@@ -125,6 +146,15 @@ public final class LiveApiProgress extends ConservativeLiveData<Object> {
      */
     public static int getNumEntities() {
         return instance.numEntities;
+    }
+
+    /**
+     * The true size of the collection the current task is fetching, or 0 if the current task has
+     * not reported one - single-entity calls never do.
+     * @return the value
+     */
+    public static int getTotalCount() {
+        return instance.totalCount;
     }
 
     /**
