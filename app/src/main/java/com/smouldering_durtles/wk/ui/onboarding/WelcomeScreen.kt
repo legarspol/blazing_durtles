@@ -45,11 +45,12 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(inner)
-                // Anchored to the top edge, not the middle: the design hangs the warm glow off the
-                // top of the screen and lets it fade out above the mascot, which then reads
-                // against the plain background. Drawn here rather than passed to `background()`
-                // because the centre and radius both depend on the measured size.
+                // Painted outside the inset, so it reaches under the status bar — the activity is
+                // already edge to edge, and leaving the gradient inside `inner` left that strip
+                // flat white. Anchored to the top edge rather than the middle: the design hangs
+                // the warm glow off the top of the screen and lets it fade out above the mascot,
+                // which then reads against the plain background. Drawn here rather than passed to
+                // `background()` because the centre and radius both depend on the measured size.
                 .drawBehind {
                     drawRect(
                         Brush.radialGradient(
@@ -59,10 +60,12 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
                         )
                     )
                 }
-                .padding(horizontal = 30.dp, vertical = 24.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+                    .padding(horizontal = 30.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Column(
