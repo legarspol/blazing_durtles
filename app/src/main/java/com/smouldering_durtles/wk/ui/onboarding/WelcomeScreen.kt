@@ -105,6 +105,7 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
                     text = OnboardingStrings.getStarted,
                     onClick = onGetStarted,
                     trailingIcon = Icons.AutoMirrored.Rounded.ArrowForward,
+                    lifted = true,
                 )
             }
         }

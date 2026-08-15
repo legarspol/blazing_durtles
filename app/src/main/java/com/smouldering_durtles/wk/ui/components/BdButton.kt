@@ -43,6 +43,7 @@ fun BdButton(
     emphasis: ButtonEmphasis = ButtonEmphasis.Filled,
     enabled: Boolean = true,
     trailingIcon: ImageVector? = null,
+    lifted: Boolean = false,
 ) {
     val colors = when (emphasis) {
         ButtonEmphasis.Filled -> ButtonDefaults.buttonColors(
@@ -59,11 +60,12 @@ fun BdButton(
         )
     }
     val shape = RoundedCornerShape(28.dp)
-    // Only the live primary action lifts off the page — a tonal or disabled button stays flat,
-    // as the design boards have them. The shadow is tinted with primary rather than left black:
-    // in light theme that warms it, and in dark theme it is what makes the ember glow under the
-    // button. API 27 and below ignore the tint and draw an ordinary black shadow.
-    val lift = if (emphasis == ButtonEmphasis.Filled && enabled) 12.dp else 0.dp
+    // Opt-in, and flat by default: the shadow reads well under a single hero button on Welcome,
+    // but on a screen that stacks two of them it just muddies the gap between them. Tonal and
+    // disabled buttons never lift, whatever the caller asks for — they are not the primary action.
+    // The tint is primary rather than black: in light theme that warms the shadow, and in dark
+    // theme it is what makes the ember glow. API 27 and below ignore the tint and draw it black.
+    val lift = if (lifted && emphasis == ButtonEmphasis.Filled && enabled) 12.dp else 0.dp
     val shadowColor = MaterialTheme.colorScheme.primary
 
     Button(
@@ -104,6 +106,7 @@ private fun BdButtonPreview(darkTheme: Boolean) {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 BdButton("Filled", {}, emphasis = ButtonEmphasis.Filled)
+                BdButton("Filled, lifted", {}, lifted = true)
                 BdButton("Filled with icon", {}, trailingIcon = Icons.Rounded.OpenInNew)
                 BdButton("Tonal", {}, emphasis = ButtonEmphasis.Tonal)
                 BdButton("Disabled", {}, enabled = false)
