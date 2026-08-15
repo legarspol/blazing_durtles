@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.smouldering_durtles.wk.ui.components.BdButton
+import com.smouldering_durtles.wk.ui.components.BdTopBar
 import com.smouldering_durtles.wk.ui.theme.BdTheme
 import com.smouldering_durtles.wk.ui.theme.BlazingDurtlesTheme
 
@@ -47,7 +49,7 @@ fun EnterTokenScreen(
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
-            OnboardingTopBar(OnboardingStrings.enterTokenTitle, onBack)
+            BdTopBar(OnboardingStrings.enterTokenTitle, onBack)
             Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 26.dp)) {
                 Text(
                     OnboardingStrings.enterTokenIntro,
@@ -105,7 +107,7 @@ fun EnterTokenScreen(
                     modifier = Modifier.padding(start = 14.dp, top = 8.dp),
                 )
             }
-            OnboardingButton(
+            BdButton(
                 text = OnboardingStrings.verifyAndContinue,
                 onClick = onContinue,
                 enabled = canContinue,

@@ -2,8 +2,6 @@ package com.smouldering_durtles.wk.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import com.smouldering_durtles.wk.GlobalSettings
-import com.smouldering_durtles.wk.jobs.SettingChangedJob
-import com.smouldering_durtles.wk.services.JobRunnerService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,15 +47,9 @@ class OnboardingViewModel : ViewModel() {
     fun onTokenChange(raw: String) = _state.update { it.copy(token = raw) }
 
     /**
-     * Stores the token and hands off to the dashboard.
-     *
-     * Scheduling [SettingChangedJob] is what actually starts the app working again: it clears
-     * `api_key_rejected` and `api_in_error`, zeroes both sync dates and asserts a `GetUserTask`.
-     * That branch exists today but never fires for the token, because it is driven by a listener
-     * on the *default* SharedPreferences while `api_key` is written to a separate encrypted file
-     * — so saving a fresh key currently leaves the rejected flag set and the app waits for
-     * housekeeping to notice. Reusing the job fixes that rather than restating its six writes in
-     * a ViewModel, where database work does not belong.
+     * Stores the token and hands off to the dashboard — the same two steps the screen this
+     * replaced took, and nothing more. Verifying the token over the network stays `GetUserTask`'s
+     * job.
      */
     fun onContinue() {
         val token = normalizeApiToken(_state.value.token)
@@ -65,7 +57,6 @@ class OnboardingViewModel : ViewModel() {
             return
         }
         GlobalSettings.Api.setApiKey(token)
-        JobRunnerService.schedule(SettingChangedJob::class.java, "api_key")
         _state.update { it.copy(finished = true) }
     }
 }

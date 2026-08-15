@@ -8,8 +8,6 @@ package com.smouldering_durtles.wk.ui.onboarding
  * resource ids do not.
  */
 object OnboardingStrings {
-    const val back = "Back"
-
     // Welcome
     const val welcomeEyebrow = "WELCOME TO"
     const val appName = "Blazing Durtles"
