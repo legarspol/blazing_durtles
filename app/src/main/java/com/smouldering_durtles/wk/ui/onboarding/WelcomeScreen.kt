@@ -1,7 +1,6 @@
 package com.smouldering_durtles.wk.ui.onboarding
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,20 +37,27 @@ import com.smouldering_durtles.wk.ui.theme.overlineStyle
  */
 @Composable
 fun WelcomeScreen(onGetStarted: () -> Unit) {
+    val glow = BdTheme.colors.container
+    val base = MaterialTheme.colorScheme.background
+
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            BdTheme.colors.container,
-                            MaterialTheme.colorScheme.background,
-                        ),
-                        radius = 900f,
+                // Anchored to the top edge, not the middle: the design hangs the warm glow off the
+                // top of the screen and lets it fade out above the mascot, which then reads
+                // against the plain background. Drawn here rather than passed to `background()`
+                // because the centre and radius both depend on the measured size.
+                .drawBehind {
+                    drawRect(
+                        Brush.radialGradient(
+                            colors = listOf(glow, base),
+                            center = Offset(size.width / 2f, 0f),
+                            radius = size.width * 0.9f,
+                        )
                     )
-                )
+                }
                 .padding(horizontal = 30.dp, vertical = 24.dp)
         ) {
             Column(
