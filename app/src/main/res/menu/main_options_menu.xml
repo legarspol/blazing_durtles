@@ -59,12 +59,6 @@
     <item android:id="@+id/action_flush_tasks"
         android:title="Flush BG tasks"
         app:showAsAction="never"/>
-    <item android:id="@+id/action_about"
-        android:title="About..."
-        app:showAsAction="never"/>
-    <item android:id="@+id/action_support"
-        android:title="Support/feedback..."
-        app:showAsAction="never"/>
     <item android:id="@+id/action_test"
         android:title="Test"
         app:showAsAction="never"
