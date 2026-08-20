@@ -69,7 +69,7 @@
             app:title="Sync when the app is opened"
             android:summary="Triggers sync if the app has been closed for at least 3 min"
             app:singleLineTitle="false"
-            app:defaultValue="false"/>
+            app:defaultValue="true"/>
 
         <com.smouldering_durtles.wk.components.EncryptedEditTextPreference
             app:key="web_password"

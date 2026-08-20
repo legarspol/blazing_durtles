@@ -866,7 +866,7 @@ public final class GlobalSettings {
          * @return the value
          */
         public static boolean getSyncOnOpen() {
-            return prefs().getBoolean("sync_on_open", false);
+            return prefs().getBoolean("sync_on_open", true);
         }
 
         /**
