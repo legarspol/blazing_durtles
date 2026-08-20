@@ -582,14 +582,6 @@ public abstract class AbstractActivity extends AppCompatActivity implements Shar
                     })).create().show();
             return true;
         }
-        if (itemId == R.id.action_about) {
-            goToActivity(AboutActivity.class);
-            return true;
-        }
-        if (itemId == R.id.action_support) {
-            goToActivity(SupportActivity.class);
-            return true;
-        }
         if (itemId == R.id.action_test) {
             Toast.makeText(this, "Test!", Toast.LENGTH_SHORT).show();
             goToActivity(TestActivity.class);
