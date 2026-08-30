@@ -69,6 +69,23 @@ abstract class TaskDefinitionDao {
     abstract fun getNextTaskDefinition(): TaskDefinition?
 
     /**
+     * Room-generated method: get a LiveData instance containing the priority of the next API task
+     * to run, or -1 when none are queued.
+     *
+     * Tasks run strictly in priority order, one at a time, so this single number says exactly how
+     * far a sync has got: everything below it has finished, and the task at it is the one running.
+     * -1 rather than null keeps the LiveData a plain Int for the Java callers.
+     *
+     * @return the LiveData instance
+     */
+    @Query(
+        "SELECT IFNULL(MIN(priority), -1) FROM task_definition " +
+            "WHERE taskClass!='com.smouldering_durtles.wk.tasks.DownloadAudioTask' " +
+            "AND taskClass!='com.smouldering_durtles.wk.tasks.DownloadPitchInfoTask'"
+    )
+    abstract fun getLiveNextApiPriority(): LiveData<Int>
+
+    /**
      * Room-generated method: get the number of tasks for a certain task type.
      *
      * @param taskClass the task type key to look for, see ApiTaskType
