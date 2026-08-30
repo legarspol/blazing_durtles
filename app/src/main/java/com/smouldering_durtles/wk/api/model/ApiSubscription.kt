@@ -14,30 +14,15 @@
  * limitations under the License.
  */
 
-package com.smouldering_durtles.wk.api.model;
+package com.smouldering_durtles.wk.api.model
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Model class for subscription information in the user record.
  */
-@SuppressWarnings("unused")
-public final class ApiSubscription {
-    @JsonProperty("max_level_granted") private int maxLevelGranted = 0;
-
-    /**
-     * The maximum level granted by the user's current subscription.
-     * @return the value
-     */
-    public int getMaxLevelGranted() {
-        return maxLevelGranted;
-    }
-
-    /**
-     * The maximum level granted by the user's current subscription.
-     * @param maxLevelGranted the value
-     */
-    public void setMaxLevelGranted(final int maxLevelGranted) {
-        this.maxLevelGranted = maxLevelGranted;
-    }
-}
+@Serializable
+data class ApiSubscription(
+    @SerialName("max_level_granted") val maxLevelGranted: Int = 0
+)
