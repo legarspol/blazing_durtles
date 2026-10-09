@@ -2,9 +2,11 @@
 
 Why this change, one paragraph, link to MIGRATION_PLAN.md phase.
 
-## Files in scope
+## Files likely involved
 
-Exact list. The coder may not touch anything else.
+Where the work probably lands — a starting point to orient the coder, not a
+limit on what it may touch. Keeping the diff small is the rule (see CLAUDE.md);
+this list is not the mechanism.
 
 ## Acceptance criteria
 
