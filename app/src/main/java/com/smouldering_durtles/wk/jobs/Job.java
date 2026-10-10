@@ -79,9 +79,6 @@ public abstract class Job {
             case API_KEY_MISSING:
             case API_KEY_REJECTED:
             case ERROR:
-                db.assertGetUserTask();
-                canTriggerApiTasks = false;
-                break;
             case UNKNOWN:
             case EXPIRED:
             case REFRESH_USER_DATA:
@@ -89,6 +86,9 @@ public abstract class Job {
                 break;
             case OK:
                 break;
+        }
+        if (blocksAutomaticApiTasks(currentApiState)) {
+            canTriggerApiTasks = false;
         }
 
         final long lastGetSrsSystemsSuccess = db.propertiesDao().getLastSrsSystemSyncSuccessDate();
@@ -142,6 +142,20 @@ public abstract class Job {
         if (canTriggerApiTasks) {
             ApiTaskService.schedule();
         }
+    }
+
+    /**
+     * Whether being in this state should hold off every other queued API task until
+     * {@code GetUserTask} has had a chance to probe and clear it. {@code ERROR} is deliberately
+     * excluded: unlike a rejected or missing key, a transport blip or server error can resolve on
+     * its own, and the probe is how that gets detected instead of waiting for the user to press
+     * retry.
+     *
+     * @param state the current API state
+     * @return true if other API tasks must stay queued until the probe succeeds
+     */
+    static boolean blocksAutomaticApiTasks(final ApiState state) {
+        return state == ApiState.API_KEY_MISSING || state == ApiState.API_KEY_REJECTED;
     }
 
     /**

@@ -82,6 +82,64 @@ public abstract class ApiTask {
     }
 
     /**
+     * How a failed API call should be reacted to. Kept separate from the {@code HttpsURLConnection}
+     * handling in {@link #getApiCall} / {@link #postApiCall} so the classification itself — the part
+     * that was getting transport failures and real server errors confused — can be covered by a
+     * plain JVM unit test.
+     */
+    enum ApiFailureKind {
+        /**
+         * No HTTP response was received at all: DNS failure, connect timeout, connection refused,
+         * and the like. This is not evidence that the API itself is broken, so it must not set
+         * {@code api_in_error} - the queued task is simply retried once connectivity returns.
+         */
+        TRANSPORT,
+
+        /**
+         * The server rejected the API token (HTTP 401).
+         */
+        UNAUTHORIZED,
+
+        /**
+         * The server is asking to slow down (HTTP 429).
+         */
+        RATE_LIMITED,
+
+        /**
+         * The server refused the request body (HTTP 422). Only relevant to {@link #postApiCall}.
+         */
+        UNPROCESSABLE_ENTITY,
+
+        /**
+         * A genuine HTTP-level error response, e.g. a 5xx.
+         */
+        SERVER_ERROR
+    }
+
+    /**
+     * Classify a failed API call by its HTTP response code, distinguishing a transport-level
+     * failure (no response received at all, reported as code 0) from a real HTTP error response.
+     *
+     * @param code the HTTP response code, or 0 if no response was received
+     * @return the classification to react to
+     */
+    static ApiFailureKind classifyFailure(final int code) {
+        if (code == HTTP_UNAUTHORIZED) {
+            return ApiFailureKind.UNAUTHORIZED;
+        }
+        if (code == HTTP_TOO_MANY_REQUESTS) {
+            return ApiFailureKind.RATE_LIMITED;
+        }
+        if (code == HTTP_UNPROCESSABLE_ENTITY) {
+            return ApiFailureKind.UNPROCESSABLE_ENTITY;
+        }
+        if (code == 0) {
+            return ApiFailureKind.TRANSPORT;
+        }
+        return ApiFailureKind.SERVER_ERROR;
+    }
+
+    /**
      * Helper method to do a GET WaniKani API call and return the JSON response. Sets an API error
      * status if needed, and returns null if no JSON-parseable response body could be received for
      * any reason. Respects the API rate limits and will back off if the API signals we're going
@@ -135,18 +193,20 @@ public abstract class ApiTask {
                     //
                 }
             }
-            if (code == HTTP_UNAUTHORIZED) {
+            final ApiFailureKind kind = classifyFailure(code);
+            if (kind == ApiFailureKind.UNAUTHORIZED) {
                 // Unauthorized
                 db.propertiesDao().setApiKeyRejected(true);
                 db.propertiesDao().setApiInError(true);
                 LiveApiState.getInstance().forceUpdate();
             }
-            else if (code == HTTP_TOO_MANY_REQUESTS) {
+            else if (kind == ApiFailureKind.RATE_LIMITED) {
                 // Too many requests
                 RateLimiter.getInstance().pause();
             }
-            else {
-                // Server error >= 500 or some other error
+            else if (kind != ApiFailureKind.TRANSPORT) {
+                // Server error >= 500 or some other HTTP-level error. A transport failure (no
+                // response received at all) leaves api_in_error alone, see ApiFailureKind.TRANSPORT.
                 db.propertiesDao().setApiInError(true);
                 LiveApiState.getInstance().forceUpdate();
             }
@@ -259,23 +319,25 @@ public abstract class ApiTask {
                     //
                 }
             }
-            if (code == HTTP_UNAUTHORIZED) {
+            final ApiFailureKind kind = classifyFailure(code);
+            if (kind == ApiFailureKind.UNAUTHORIZED) {
                 // Unauthorized
                 db.propertiesDao().setApiKeyRejected(true);
                 db.propertiesDao().setApiInError(true);
                 LiveApiState.getInstance().forceUpdate();
             }
-            else if (code == HTTP_TOO_MANY_REQUESTS) {
+            else if (kind == ApiFailureKind.RATE_LIMITED) {
                 // Too many requests
                 RateLimiter.getInstance().pause();
             }
-            else if (code == HTTP_UNPROCESSABLE_ENTITY) {
+            else if (kind == ApiFailureKind.UNPROCESSABLE_ENTITY) {
                 // Server refuses the entity, discard the error
                 LOGGER.error(e, "API error");
                 return NullNode.getInstance();
             }
-            else {
-                // Server error >= 500 or some other error
+            else if (kind != ApiFailureKind.TRANSPORT) {
+                // Server error >= 500 or some other HTTP-level error. A transport failure (no
+                // response received at all) leaves api_in_error alone, see ApiFailureKind.TRANSPORT.
                 db.propertiesDao().setApiInError(true);
                 LiveApiState.getInstance().forceUpdate();
             }
