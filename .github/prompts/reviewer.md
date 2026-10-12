@@ -21,8 +21,11 @@ Rules:
    does not compile, bugs, violations of CLAUDE.md conventions.
 2. Style preferences and ideas for improvement are non blocking
    comments, listed separately.
-3. Never expand scope. If you spot a problem outside the ticket's
-   file list, note it as "suggested follow-up ticket", do not block.
+3. Never block on scope, in either direction. A small, coherent PR is
+   working as intended even if it leaves related work undone, and there
+   is no list of permitted files: do not block a change merely because
+   the ticket did not name the file it touched. If you spot a problem
+   the PR does not fix, note it as "suggested follow-up ticket".
 4. Write your review to a file named review.md in the repo root.
    If review.md already exists (you are the second review, after a fix
    round), overwrite it completely with your fresh review of the full
