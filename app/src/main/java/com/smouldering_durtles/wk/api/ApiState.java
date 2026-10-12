@@ -42,10 +42,12 @@ public enum ApiState {
     API_KEY_REJECTED(false),
 
     /**
-     * Another type of error has been received from the API. Stop communication
-     * until the user chooses to retry. This also covers network problems.
+     * A real API error response has been received (a server error, or a malformed
+     * body). Other API calls are stopped until the user chooses to retry, but the
+     * user endpoint can still be probed, so a server-side recovery clears this on
+     * its own instead of latching forever.
      */
-    ERROR(false),
+    ERROR(true),
 
     /**
      * State is unknown, an attempt to get user details must be made to progress
