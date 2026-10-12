@@ -29,6 +29,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.core.content.ContextCompat;
 
 import com.smouldering_durtles.wk.GlobalSettings;
@@ -54,7 +55,7 @@ import com.smouldering_durtles.wk.services.BackgroundAlarmReceiver;
 import com.smouldering_durtles.wk.services.BackgroundSyncWorker;
 import com.smouldering_durtles.wk.services.JobRunnerService;
 import com.smouldering_durtles.wk.views.AvailableSessionsView;
-import com.smouldering_durtles.wk.views.FirstTimeSetupView;
+import com.smouldering_durtles.wk.ui.sync.FirstSyncPanel;
 import com.smouldering_durtles.wk.views.JlptProgressView;
 import com.smouldering_durtles.wk.views.JoyoProgressView;
 import com.smouldering_durtles.wk.views.LessonReviewBreakdownView;
@@ -145,9 +146,9 @@ public final class MainActivity extends AbstractActivity {
             lessonReviewBreakdownView.setLifecycleOwner(this);
         }
 
-        final @Nullable FirstTimeSetupView firstTimeSetupView = findViewById(R.id.firstTimeSetupView);
-        if (firstTimeSetupView != null) {
-            firstTimeSetupView.setLifecycleOwner(this);
+        final @Nullable ComposeView firstSyncView = findViewById(R.id.firstSyncView);
+        if (firstSyncView != null) {
+            FirstSyncPanel.install(firstSyncView);
         }
 
         final @Nullable LevelDurationView levelDurationView = findViewById(R.id.levelDurationView);
