@@ -1,0 +1,114 @@
+name: Release to Play (internal)
+
+# Builds a signed release bundle for every commit on main and uploads it to the Play
+# Console's internal testing track. It runs only after CI (ci.yml) has gone green on
+# that commit, so a commit that fails the build or tests never reaches testers.
+#
+# Required repository secrets:
+#   RELEASE_KEYSTORE_BASE64     upload keystore (.jks), base64-encoded: `base64 -w0 upload.jks`
+#   RELEASE_KEYSTORE_PASSWORD   keystore password
+#   RELEASE_KEY_ALIAS           key alias inside the keystore
+#   RELEASE_KEY_PASSWORD        key password
+#   PLAY_SERVICE_ACCOUNT_JSON   JSON key of a Google Cloud service account that has been
+#                               granted "Release to testing tracks" on the app in Play Console
+# Optional repository secret:
+#   GOOGLE_SERVICES_JSON        real app/google-services.json; without it the release is built
+#                               against the committed Firebase placeholder (no Crashlytics data)
+# Optional repository variable:
+#   PLAY_RELEASE_STATUS         `completed` (default). Set to `draft` while the app has never
+#                               been published on Play -- the API rejects other statuses then.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Manual re-release of main's head, e.g. after fixing a secret.
+  workflow_dispatch:
+
+# One upload at a time, in order; never cancel an upload half-way.
+concurrency:
+  group: release-play-internal
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  release:
+    name: Build + upload to internal testing
+    # workflow_run also fires for failed CI runs and for CI on pull requests (whose
+    # head_branch can be named main in a fork); release only a green push to main.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The exact commit CI verified, not whatever main points at now.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Write signing keystore and Firebase config
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "::error::RELEASE_KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+          echo "RELEASE_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES_JSON not set; building against the Firebase placeholder."
+          fi
+
+      # Play rejects a versionCode it has seen before, so derive a strictly increasing one
+      # from this workflow's run number, offset well past the checked-in 86.
+      - name: Build release bundle
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          version_code=$((1000 + GITHUB_RUN_NUMBER))
+          echo "versionCode=$version_code"
+          ./gradlew :app:bundleRelease -PversionCode="$version_code" --stacktrace
+
+      - name: Upload to Play internal testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.blazingdurtles.android
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
+
+      - name: Keep the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ github.run_number }}
+          path: app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks" app/google-services.json

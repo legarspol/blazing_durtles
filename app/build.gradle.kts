@@ -28,7 +28,9 @@ android {
         // Firebase (BOM 33+) requires API 23; every Firebase SDK declares minSdk 23.
         minSdk = 23
         targetSdk = 37
-        versionCode = 86
+        // CI's Play upload (.github/workflows/release.yml) passes -PversionCode so every upload
+        // is unique and increasing; local builds keep the checked-in value.
+        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 86
         versionName = "1.2.5"
         vectorDrawables.useSupportLibrary = true
         vectorDrawables.generatedDensities()
@@ -36,9 +38,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testApplicationId = "com.blazingdurtles.android.test"
     }
+    signingConfigs {
+        // Upload-key signing for CI's Play upload (.github/workflows/release.yml). Without the
+        // env vars (any local build) no config is created and release builds stay unsigned.
+        val keystore = System.getenv("RELEASE_KEYSTORE_FILE")
+        if (keystore != null) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
             resValue("string", "fileprovider_authority", "com.blazingdurtles.android.fileprovider")
             resValue(
                 "string",
